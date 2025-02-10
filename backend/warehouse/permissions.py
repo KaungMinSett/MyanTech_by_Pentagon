@@ -12,10 +12,10 @@ class IsEmployee(permissions.BasePermission):
     
 
 
-class IsManager(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return request.user.groups.filter(name='Manager').exists()
+# class IsManager(permissions.BasePermission):
+#     def has_permission(self, request, view):
+#         return request.user.groups.filter(name='Manager').exists()
 
-class IsStaff(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return request.user.groups.filter(name='Staff').exists()
+# class IsStaff(permissions.BasePermission):
+#     def has_permission(self, request, view):
+#         return request.user.groups.filter(name='Staff').exists()

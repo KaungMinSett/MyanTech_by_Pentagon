@@ -10,7 +10,7 @@ router.register(r'categories', CategoryViewSet)
 router.register(r'products', ProductViewSet)
 router.register(r'warehouses', WarehouseViewSet)
 router.register(r'inventory', InventoryListViewSet)
-router.register(r'product-requests', InboundViewSet, basename='product-request')
+router.register(r'inbounds', InboundViewSet, basename='inbounds')
 
 router.register(r'outbounds', OutboundViewSet)  
 

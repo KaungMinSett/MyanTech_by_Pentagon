@@ -8,7 +8,7 @@ from rest_framework.decorators import action
 
 from .models import Brand, Category, Product, Warehouse, InventoryList, Outbound, Inbound
 from .serializers import BrandSerializer, CategorySerializer, ProductSerializer, WarehouseSerializer, InventoryListSerializer, InboundSerializer, OutboundSerializer, InboundApprovalSerializer
-from .permissions import IsEmployee , IsManager, IsStaff
+from .permissions import IsEmployee 
 
 class BrandViewSet(viewsets.ModelViewSet):
     queryset = Brand.objects.all()
@@ -38,7 +38,7 @@ class InventoryListViewSet(viewsets.ModelViewSet):
 class InboundViewSet(viewsets.ModelViewSet):
     queryset = Inbound.objects.all()
     serializer_class = InboundSerializer
-    permission_classes = [IsStaff]  # Staff can create/view their requests
+    # permission_classes = [IsStaff]  # Staff can create/view their requests
 
     def get_serializer_class(self):
         # Use different serializer for approval action
@@ -50,7 +50,8 @@ class InboundViewSet(viewsets.ModelViewSet):
         # Staff creates inbound request for existing product
         serializer.save(created_by=self.request.user)
 
-    @action(detail=True, methods=['patch'], permission_classes=[IsManager])
+    # permission_classes=[IsManager]
+    @action(detail=True, methods=['patch'], ) 
     def approve(self, request, pk=None):
         inbound = self.get_object()
         serializer = self.get_serializer(inbound, data=request.data, partial=True)
