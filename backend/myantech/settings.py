@@ -39,7 +39,16 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+<<<<<<< Updated upstream
 
+=======
+    'djoser',
+    "corsheaders",
+    "core",
+    "shop",
+    "sales",
+    "hr",
+>>>>>>> Stashed changes
 ]
 
 MIDDLEWARE = [

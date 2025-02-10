@@ -19,4 +19,14 @@ from django.urls import path
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+<<<<<<< Updated upstream
 ]
+=======
+    path('warehouse/', include(('warehouse.urls', 'warehouse'), namespace='warehouse')),  # Include Warehouse app URLs
+    path('hr/', include('hr.urls')),
+    path('shop/', include('shop.urls')),  # Your custom authentication-related views
+    path('auth/', include('djoser.urls')),  # General Djoser routes
+    path('auth/', include('core.urls')),  
+    path('sales/',include('sales.urls'))
+]
+>>>>>>> Stashed changes
