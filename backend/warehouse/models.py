@@ -85,7 +85,7 @@ class Inbound(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.name} ({self.status})"
+        return f"{self.product} ({self.status})"
 
 
 

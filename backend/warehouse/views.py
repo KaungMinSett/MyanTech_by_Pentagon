@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 
 from .models import Brand, Category, Product, Warehouse, InventoryList, Outbound, Inbound
-from .serializers import BrandSerializer, CategorySerializer, ProductSerializer, WarehouseSerializer, InventoryListSerializer, InboundSerializer,ProductApprovalSerializer, OutboundSerializer
+from .serializers import BrandSerializer, CategorySerializer, ProductSerializer, WarehouseSerializer, InventoryListSerializer, InboundSerializer, OutboundSerializer, InboundApprovalSerializer
 from .permissions import IsEmployee , IsManager, IsStaff
 
 class BrandViewSet(viewsets.ModelViewSet):
@@ -40,25 +40,29 @@ class InboundViewSet(viewsets.ModelViewSet):
     serializer_class = InboundSerializer
     permission_classes = [IsStaff]  # Staff can create/view their requests
 
+    def get_serializer_class(self):
+        # Use different serializer for approval action
+        if self.action == 'approve':
+            return InboundApprovalSerializer
+        return super().get_serializer_class()
+
     def perform_create(self, serializer):
+        # Staff creates inbound request for existing product
         serializer.save(created_by=self.request.user)
 
     @action(detail=True, methods=['patch'], permission_classes=[IsManager])
     def approve(self, request, pk=None):
-        product_request = self.get_object()
-        serializer = ProductApprovalSerializer(product_request, data=request.data, partial=True)
-        if serializer.is_valid():
-            # If approved, create the Product
-            if serializer.validated_data['status'] == 'approved':
-                Product.objects.create(
-                    name=product_request.name,
-                    category=product_request.category,
-                    brand=product_request.brand,
-                    description=product_request.description
-                )
-            serializer.save(resolved_by=request.user)
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        inbound = self.get_object()
+        serializer = self.get_serializer(inbound, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        
+        # Save with resolved_by and status
+        serializer.save(resolved_by=request.user)
+        
+        # No direct inventory update here - let signals handle it
+        return Response(serializer.data)
+
+
 
 
 class OutboundViewSet(viewsets.ModelViewSet):
