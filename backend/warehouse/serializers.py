@@ -19,7 +19,7 @@ class ProductSerializer(serializers.ModelSerializer):
 class WarehouseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Warehouse
-        fields = ['id', 'name', 'location']
+        fields = ['id', 'name', 'address']
 
 class InventoryListSerializer(serializers.ModelSerializer):
     class Meta:
@@ -29,16 +29,27 @@ class InventoryListSerializer(serializers.ModelSerializer):
 class InboundSerializer(serializers.ModelSerializer):
     class Meta:
         model = Inbound
-        fields = ['id', 'name', 'category', 'brand', 'description', 'status', 'created_by', 'resolved_by']
+        fields = [
+            'id', 'product',  'status', 'warehouse','quantity',
+            'created_by', 'resolved_by', 
+            'created_at', 'updated_at'  # Include timestamps
+        ]
+        read_only_fields = (
+            'created_by', 'resolved_by', 
+            'created_at', 'updated_at', 'status'  # Add 'status' if staff shouldn't set it
+        )
 
-        read_only_fields = ('created_by', 'resolved_by', 'created_at', 'updated_at')
-    
     def validate(self, data):
-        # Ensure product exists before creating inbound
+        # Ensure product exists (only needed if 'product' is writable)
         if not Product.objects.filter(pk=data['product'].pk).exists():
             raise serializers.ValidationError("Product does not exist")
         return data
 
+class InboundApprovalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Inbound
+        fields = ['status', 'resolved_by']  # Show resolved_by in responses
+        read_only_fields = ['resolved_by']  # Auto-set in the view
 
 
 
@@ -49,8 +60,3 @@ class OutboundSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class InboundApprovalSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Inbound
-        fields = ['status']  # Managers can only update status
-        read_only_fields = ['resolved_by']
