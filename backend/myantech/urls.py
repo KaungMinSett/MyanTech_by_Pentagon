@@ -20,5 +20,11 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('warehouse/', include(('warehouse.urls', 'warehouse'), namespace='warehouse')),  # Include Warehouse app URLs
+     path('warehouse/', include(('warehouse.urls', 'warehouse'), namespace='warehouse')),  # Include Warehouse app URLs
+     path('hr/', include('hr.urls')),
+    path('auth/', include([
+        path('', include('djoser.urls')),
+        path('', include('djoser.urls.jwt')),
+        path('', include('core.urls')),
+    ])),
 ]

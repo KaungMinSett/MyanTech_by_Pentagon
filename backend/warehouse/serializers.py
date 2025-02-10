@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Brand, Category, Product, Warehouse, InventoryList
+from .models import Brand, Category, Product, Warehouse, InventoryList, Inbound, Outbound
 
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
@@ -25,3 +25,23 @@ class InventoryListSerializer(serializers.ModelSerializer):
     class Meta:
         model = InventoryList
         fields = ['id', 'product', 'warehouse', 'quantity']
+    
+class InboundSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Inbound
+        fields = ['id', 'name', 'category', 'brand', 'description', 'status', 'created_by', 'resolved_by']
+        read_only_fields = ['status', 'created_by', 'resolved_by']
+
+class ProductApprovalSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Inbound
+        fields = ['status']
+        extra_kwargs = {'status': {'required': True}}
+
+
+
+
+class OutboundSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Outbound
+        fields = '__all__'
