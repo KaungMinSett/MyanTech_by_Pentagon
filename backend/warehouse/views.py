@@ -51,7 +51,9 @@ class InboundViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=["patch"],
-        permission_classes=[IsWarehouseManager]  # Only managers
+        permission_classes=[IsWarehouseManager],  # Only managers
+        serializer_class= InboundApprovalSerializer
+
     )
     def approve(self, request, pk=None):
         inbound = self.get_object()
