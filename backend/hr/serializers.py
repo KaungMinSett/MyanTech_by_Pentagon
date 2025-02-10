@@ -9,20 +9,13 @@ User = get_user_model()
 
 class EmployeeSerializer(serializers.ModelSerializer):
     """Serializer for retrieving Employee details"""
-    user = serializers.StringRelatedField()  # Returns username instead of ID
+    user = BaseUserSerializer()
     department = serializers.StringRelatedField()
     role = serializers.StringRelatedField()
 
     class Meta:
         model = Employee
         fields = ("id", "user", "department", "role")
-
-
-from rest_framework import serializers
-from django.contrib.auth import get_user_model
-from .models import Employee, Department, Role
-
-User = get_user_model()
 
 class EmployeeCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a new Employee with user record"""
@@ -52,3 +45,13 @@ class EmployeeCreateSerializer(serializers.ModelSerializer):
         employee = Employee.objects.create(user=user, **validated_data)
 
         return employee
+    
+class DepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Department
+        fields = ("id", "name")
+
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = ("id", "name")
