@@ -95,10 +95,10 @@ class Inbound(models.Model):
 class Outbound(models.Model):
     OUTBOUND_REASONS = [
         ('SALE', 'Sale'),
-        ('TRANSFER', 'Transfer to Another Warehouse'),
         ('RETURN', 'Return to Supplier'),
         ('DAMAGED', 'Damaged/Disposed'),
     ]
+
 
     product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='outbounds')
     warehouse = models.ForeignKey('Warehouse', on_delete=models.CASCADE, related_name='outbounds')
