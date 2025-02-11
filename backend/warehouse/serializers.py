@@ -30,7 +30,6 @@ class InboundSerializer(serializers.ModelSerializer):
     class Meta:
         model = Inbound
         fields = ['id', 'name', 'category', 'brand', 'description', 'status', 'created_by', 'resolved_by']
-
         read_only_fields = ('created_by', 'resolved_by', 'created_at', 'updated_at')
     
     def validate(self, data):
