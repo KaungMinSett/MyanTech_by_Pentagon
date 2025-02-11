@@ -40,7 +40,6 @@ class InboundSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at', 'status'  # Add 'status' if staff shouldn't set it
         )
 
-
     def validate(self, data):
         # Ensure product exists (only needed if 'product' is writable)
         if not Product.objects.filter(pk=data['product'].pk).exists():
