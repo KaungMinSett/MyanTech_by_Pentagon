@@ -5,6 +5,7 @@ import "./globals.css";
 import SidebarLayout from "@/components/layout/SidebarLayout";
 import DashboardPage from "@/app/dashboard/page";
 import { AdminLoginPage } from "../components/auth/login";
+import DepartmentList from "./testing";
 
 function Layout() {
   const location = useLocation();
@@ -12,6 +13,7 @@ function Layout() {
 
   return (
     <div className="flex h-screen">
+
       {!isLoginPage && <SidebarLayout />}
       <main className="flex-1 overflow-y-auto p-8">
         <Routes>
