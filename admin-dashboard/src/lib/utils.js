@@ -1,1 +1,1 @@
-// TODO: Implement the utils.js file
+export const cn = (...classes) => classes.filter(Boolean).join(" ");

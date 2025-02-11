@@ -3,6 +3,6 @@ from rest_framework_nested import routers
 from .views import *
 
 router = routers.DefaultRouter()
-router.register(r'customers', CustomerViewSet, basename="employees")
+router.register(r'customers', CustomerViewSet, basename="customers")
 
 urlpatterns = router.urls
