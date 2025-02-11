@@ -2,56 +2,67 @@ from rest_framework import serializers
 from .models import Order,OrderItem,OrderLogs,Price
 from shop.models import Address, Customer
 from hr.models import Employee
-from warehouse.models import Product
+from warehouse.models import Product,InventoryList
+
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = ['name']
+class CustomerSerializer(serializers.ModelSerializer):
+
+    address = AddressSerializer(many=True)
+
+    class Meta:
+        model = Customer
+        fields = ['id', 'full_name', 'phone', 'is_registered', 'address']
+
+    def create(self, validated_data):
+        address_data = validated_data.pop('address', [])
+
+        customer = Customer.objects.create(**validated_data)
+
+        for address in address_data:
+            Address.objects.create(customer=customer, name=address['name'])
+
+        return customer
+
 
 class OrderItemSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source="product_id.product_id.product.name", read_only=True)
     class Meta:
         model = OrderItem
-        fields = ['product_id','quantity','unit_price']
+        fields = ['id','order','product_id', 'product_name', 'quantity', 'unit_price', 'total_price']
+
 
 class OrderSerializer(serializers.ModelSerializer):
-    items = OrderItemSerializer(many=True, read_only=True)
-    customer_id = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())
-    staff_id = serializers.PrimaryKeyRelatedField(queryset=Employee.objects.all())
-    address = serializers.PrimaryKeyRelatedField(queryset=Address.objects.all(), allow_null=True, required=False)
-    custom_address = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    order_items = OrderItemSerializer(many=True)
+    customer_id= serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())
+    address = serializers.PrimaryKeyRelatedField(queryset=Address.objects.all())
+    staff = serializers.PrimaryKeyRelatedField(queryset=Employee.objects.all())
+    class Meta:
+        model = Order
+        fields = ['id', 'customer_id','address','staff', 'order_date', 'status', 'updated_at', 'order_items']
+
+    def create(self, validated_data):
+        order_items_data = validated_data.pop('order_items')
+
+        order = Order.objects.create(status='Approved',
+                                     order_type='phone', **validated_data)
+
+        for item_data in order_items_data:
+            OrderItem.objects.create(order=order, **item_data)
+
+        return order
+
+class InvoiceSerializer(serializers.ModelSerializer):
+    customer_name = serializers.CharField(source="customer_id.full_name", read_only=True)
+    total_order_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    address = serializers.PrimaryKeyRelatedField(queryset=Address.objects.all())
 
     class Meta:
         model = Order
-        fields = ['id', 'customer_id', 'address', 'custom_address', 'staff_id', 'order_date', 'order_type',
-                  'status', 'items']
-
-    def create(self, validated_data):
-        # Create the Order instance
-        order = Order.objects.create(**validated_data)
-        return order
-    def create_address(self, validated_data):
-        custom_address = validated_data.pop('custom_address', None)
-        customer = validated_data.get('customer')
-        address = validated_data.get('address')
-
-        # Create a new address if a custom address is provided
-        if custom_address and not address:
-            new_address = Address.objects.create(
-                customer=customer,
-                name=custom_address
-            )
-            validated_data['address'] = new_address
-
-        return Order.objects.create(**validated_data)
-
-    def update_address(self, instance, validated_data):
-        custom_address = validated_data.pop('custom_address', None)
-
-        if custom_address:
-            new_address = Address.objects.create(
-                customer=instance.customer,
-                name=custom_address
-            )
-            instance.address = new_address  # Update order with new address
-
-        return super().update(instance, validated_data)
-
+        fields = ['id', 'customer_id', 'customer_name','address', 'order_date', 'status', 'updated_at']
 
 class PriceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -62,3 +73,8 @@ class OrderLogsSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderLogs
         fields= '__all__'
+
+class ProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model= Product
+        fields = '__all__'

@@ -17,14 +17,17 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('warehouse/', include(('warehouse.urls', 'warehouse'), namespace='warehouse')),  # Include Warehouse app URLs
     path('hr/', include('hr.urls')),
     path('sales/', include('sales.urls')),
-    path('shop/', include('shop.urls')),  # Your custom authentication-related views
+    path('shop/', include('shop.urls')),
+    path('delivery/', include('delivery.urls')),
     path('auth/', include('djoser.urls')),  # General Djoser routes
     path('auth/', include('core.urls')),  
 
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -21,10 +21,11 @@ class Category(models.Model):
 class Warehouse(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, unique=True)
-    address = models.CharField(max_length=200)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6)
 
     def __str__(self):
-        return f"{self.name} - {self.address}"
+        return f"{self.name} - {self.latitude} - {self.longitude}"
 
 
 class InventoryList(models.Model):
@@ -95,10 +96,10 @@ class Inbound(models.Model):
 class Outbound(models.Model):
     OUTBOUND_REASONS = [
         ('SALE', 'Sale'),
-        ('TRANSFER', 'Transfer to Another Warehouse'),
         ('RETURN', 'Return to Supplier'),
         ('DAMAGED', 'Damaged/Disposed'),
     ]
+
 
     product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='outbounds')
     warehouse = models.ForeignKey('Warehouse', on_delete=models.CASCADE, related_name='outbounds')
