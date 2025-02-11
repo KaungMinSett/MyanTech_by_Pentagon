@@ -7,7 +7,7 @@ db.sqlite3
 
 # Virtual environment
 venv/
-
+.idea/
 # Django migrations (ignore all except __init__.py)
 */migrations/*.py
 !*/migrations/__init__.py

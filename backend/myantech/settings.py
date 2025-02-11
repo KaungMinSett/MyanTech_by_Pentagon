@@ -39,14 +39,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+    'warehouse',
     'rest_framework',
     'djoser',
     "corsheaders",
-    
     "core",
     "shop",
     "hr",
+    "sales"
 ]
 
 MIDDLEWARE = [
@@ -91,6 +91,7 @@ DATABASES = {
         'HOST': 'localhost',
         'USER': 'root',
         'PASSWORD': DB_PASSWORD,
+        'PORT':'3307',
     }
 }
 
@@ -161,5 +162,6 @@ AUTH_USER_MODEL = 'core.User'
 DJOSER = {
     'SERIALIZERS': {
         'user_create': 'core.serializers.UserCreateSerializer',
+        'token_create': 'core.serializers.TokenCreateSerializer',
     }
 }
