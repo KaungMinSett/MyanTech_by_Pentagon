@@ -2,10 +2,11 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import Customer
 from django.contrib.auth import get_user_model
 from rest_framework.response import Response
-from rest_framework import viewsets
-from sales.models import Price
+from rest_framework.decorators import action
+from rest_framework import viewsets, status
+from sales.models import Price,Order
 from warehouse.models import Product
-from .serializers import CustomerSerializer,ProductSerializer
+from sales.serializers import CustomerSerializer,ProductSerializer,OrderSerializer,OrderItemSerializer,InvoiceSerializer
 
 User = get_user_model()
 
@@ -28,16 +29,26 @@ class CustomerLoginView(TokenObtainPairView):
         else:
             return Response({'error': 'Employee credentials are not allowed'}, status=403)
 
-
-class AvailableProductListView(viewsets.ReadOnlyModelViewSet):
-    serializer_class = ProductSerializer
+class OrderViewSet(viewsets.ModelViewSet):
+    serializer_class = OrderSerializer
+    #permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Get products that have a published price
-        published_product_ids = Price.objects.filter(is_published=True).values_list('product_id', flat=True)
+        """Ensure customers only see their own orders."""
+        return Order.objects.filter(customer_id=self.request.user.customer_id)
 
-        # Filter only products that exist in the published list
-        return Product.objects.filter(id__in=published_product_ids)
+    @action(detail=True, methods=['get'])
+    def order_summary(self, request, pk=None):
+        """View order details along with selected order items."""
+        order = self.get_object()
+        serializer = OrderSerializer(order)
+        return Response(serializer.data)
 
-
-
+    @action(detail=True, methods=['get'])
+    def invoice(self, request, pk=None):
+        """View invoice only if the order is approved."""
+        order = self.get_object()
+        if order.status != 'Approved':
+            return Response({"error": "Invoice is only available for approved orders."}, status=400)
+        serializer = InvoiceSerializer(order)
+        return Response(serializer.data)

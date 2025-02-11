@@ -29,31 +29,40 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
-
+    product_name = serializers.CharField(source="product_id.product_id.product.name", read_only=True)
     class Meta:
         model = OrderItem
-        fields = ['order','product_id','quantity','unit_price']
+        fields = ['id','order','product_id', 'product_name', 'quantity', 'unit_price', 'total_price']
 
 
 class OrderSerializer(serializers.ModelSerializer):
     order_items = OrderItemSerializer(many=True)
-    customer= serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())
+    customer_id= serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())
+    address = serializers.PrimaryKeyRelatedField(queryset=Address.objects.all())
     staff = serializers.PrimaryKeyRelatedField(queryset=Employee.objects.all())
-
     class Meta:
         model = Order
-        fields = ['id', 'customer', 'staff', 'order_date', 'order_type', 'status', 'order_items']
+        fields = ['id', 'customer_id','address','staff', 'order_date', 'status', 'updated_at', 'order_items']
 
     def create(self, validated_data):
         order_items_data = validated_data.pop('order_items')
 
-        order = Order.objects.create(customer=validated_data['customer'], staff=validated_data['staff'],status='Approved', **validated_data)
+        order = Order.objects.create(status='Approved',
+                                     order_type='phone', **validated_data)
 
         for item_data in order_items_data:
             OrderItem.objects.create(order=order, **item_data)
 
         return order
 
+class InvoiceSerializer(serializers.ModelSerializer):
+    customer_name = serializers.CharField(source="customer_id.full_name", read_only=True)
+    total_order_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    address = serializers.PrimaryKeyRelatedField(queryset=Address.objects.all())
+
+    class Meta:
+        model = Order
+        fields = ['id', 'customer_id', 'customer_name','address', 'order_date', 'status', 'updated_at']
 
 class PriceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -66,18 +75,6 @@ class OrderLogsSerializer(serializers.ModelSerializer):
         fields= '__all__'
 
 class ProductSerializer(serializers.ModelSerializer):
-    price = serializers.SerializerMethodField()
-    available_stock = serializers.SerializerMethodField()
     class Meta:
-        model = Product
-        fields = ['id','name','category','brand','description','price','available_stock']
-
-    def get_price(self, obj):
-        # Fetch the first published price for the product
-        price = Price.objects.filter(product_id__product=obj, is_published=True).first()
-        return price.price if price else None
-
-    def get_available_stock(self, obj):
-        # Get the first available InventoryList record for the product
-        inventory = InventoryList.objects.filter(product=obj).first()
-        return inventory.quantity if inventory else 0
+        model= Product
+        fields = '__all__'
