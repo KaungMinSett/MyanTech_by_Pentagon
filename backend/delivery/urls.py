@@ -1,24 +1,24 @@
-# urls.py
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import *
+from rest_framework_nested import routers
+from .views import DeliveryGroupViewSet, DeliveryViewSet
 
-router = DefaultRouter()
+# Create a base router for DeliveryGroup
+router = routers.DefaultRouter()
 router.register(r'delivery-groups', DeliveryGroupViewSet, basename='deliverygroup')
-router.register(r'deliveries', DeliveryViewSet, basename='delivery')
+
+# Create a nested router for Delivery under DeliveryGroup
+delivery_group_router = routers.NestedSimpleRouter(router, r'delivery-groups', lookup='deliverygroup')
+delivery_group_router.register(r'deliveries', DeliveryViewSet, basename='deliverygroup-deliveries')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('', include(delivery_group_router.urls)),
 ]
 
-# 1. /delivery-groups/ (GET, POST, PUT, PATCH, DELETE)
-# 2. /delivery-groups/{id}/ (GET, PUT, PATCH, DELETE)
-# 3. /delivery-groups/trigger-delivery-assignment/ (POST) - Custom action for warehouse manager
-# 4. /deliveries/ (GET, POST, PUT, PATCH, DELETE)
-# 5. /deliveries/{id}/ (GET, PUT, PATCH, DELETE)
-# 6. /deliveries/{id}/update-status/ (PATCH) - Custom action for drivers
-# 7. /deliveries/assigned-groups/ (GET) - Custom action for drivers to get assigned delivery groups
-# 8. /deliveries/deliveries/ (GET) - Custom action for drivers to get deliveries within an assigned group
+# GET/PUT/PATCH/DELETE ==> /delivery-groups/<group_id>/
+# POST ==> /delivery-groups/delivery_assignment/
+# GET/PUT/PATCH/DELETE ==> /delivery-groups/<group_id>/deliveries/<delivery_id>/
+# PATCH ==> /delivery-groups/<group_id>/deliveries/<delivery_id>/complete/
 
 
 # Delivery System
@@ -29,7 +29,3 @@ urlpatterns = [
 
 # NOTE: condition of meeting a threshold
 # When there are 30 orders found with CONFIRMED status, it will trigger the delivery assignment process
-
-# 1 api end point for warehouse manager to trigger this delivery assignment process manually
-# 3 api end points for driver to update order status complete or pending / get assigned delivery groups along with deliveries
-# 1 api end points to show the list of delivery groups including deliveries for all in warehouse department
