@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,6 +30,12 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:8000"
+]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Application definition
 
@@ -166,3 +173,9 @@ DJOSER = {
         'token_create': 'core.serializers.TokenCreateSerializer',
     }
 }
+
+
+
+# Media files (uploaded images)
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Directory where images are stored
+MEDIA_URL = '/media/'  # URL prefix for accessing images
