@@ -54,7 +54,8 @@ INSTALLED_APPS = [
     "shop",
     "hr",
     "sales",
-    "delivery"
+    "delivery",
+    "finance"
 ]
 
 MIDDLEWARE = [

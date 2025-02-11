@@ -6,6 +6,9 @@ from .models import *
 class DeliveryAdmin(admin.ModelAdmin):
     pass
 
+
+
 @admin.register(DeliveryGroup)
 class DeliveryGroupAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('id', 'status',)
+

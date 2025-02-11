@@ -77,3 +77,12 @@ class IsWarehouseTeam(BasePermission):
             role__name__in=["staff", "manager"],  # Check role names
             department__name="warehouse"          # Check department name
         ).exists()
+    
+
+class IsFinanceTeam(BasePermission):
+    message = "Access restricted to finance staff."
+    def has_permission(self, request, view):
+        return Employee.objects.filter(
+            user=request.user,
+            department__name="finance"  
+        ).exists()
