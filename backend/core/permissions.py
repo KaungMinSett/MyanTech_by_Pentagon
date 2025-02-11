@@ -21,6 +21,29 @@ class IsEmployee(permissions.BasePermission):
 #     def has_permission(self, request, view):
 #         return request.user.groups.filter(role='Staff').exists()
 
+class IsSalesManager(BasePermission):
+    message = "Access Restricted to Sales Manager."
+
+    def has_permission(self, request, view):
+        return Employee.objects.filter(
+            user=request.user,
+            role__name="staff",
+            department__name="sales"
+            ).exists()
+    
+class IsSalesStaff(BasePermission):
+    message = "Access Restricted to Sales Staff."
+    
+    def has_permission(self,request, view):
+        return Employee.objects.filter(
+            
+            user=request.user,
+            role__name="staff",
+            department__name="sales"
+            ).exists()
+        
+
+
 class IsWarehouseStaff(BasePermission):
     message = "Access restricted to warehouse staff."
 

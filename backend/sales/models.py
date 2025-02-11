@@ -10,6 +10,11 @@ class Price(models.Model):
     product_id = models.ForeignKey(InventoryList, on_delete=models.CASCADE, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     is_published = models.BooleanField(default=False)
+    image = models.ImageField(
+        upload_to='product_images/',  # Images stored in MEDIA_ROOT/
+        blank=True,  # Optional field
+        null=True,   # Allow NULL in database
+    )
 
 
     def get_available_stock(self):
