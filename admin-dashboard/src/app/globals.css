@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --ring: 215 25% 27%;
+  --background: 0 0% 100%;
+  --foreground: 215 25% 27%;
+  --primary: 221 83% 53%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 215 25% 27%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 215 16% 47%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 221 83% 53%;
+  --accent-foreground: 210 40% 98%;
+  --card: 0 0% 100%;
+  --card-foreground: 215 25% 27%;
+}
