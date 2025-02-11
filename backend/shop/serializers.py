@@ -1,8 +1,9 @@
-from .models import Customer
+from .models import Customer,Address
 from rest_framework import serializers
 from djoser.serializers import UserSerializer as BaseUserSerializer
 from django.contrib.auth import get_user_model
-
+from sales.models import Price
+from warehouse.models import Product
 User = get_user_model()
 
 class CustomerSerializer(serializers.ModelSerializer):
@@ -12,31 +13,23 @@ class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customer
         fields = ("id", "user")
-        
-# class CustomerCreateSerializer(serializers.ModelSerializer):
-#     """Serializer for creating a new Employee with user record"""
-#     username = serializers.CharField(write_only=True)
-#     password = serializers.CharField(write_only=True)
-#     email = serializers.EmailField(write_only=True)
 
-#     class Meta:
-#         model = Customer
-#         fields = ("email", "username", "password")
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = ['customer_id','name']
 
-#     def create(self, validated_data):
-#         # Extract user-related data
-#         user_data = {
-#             'username': validated_data.pop('username'),
-#             'password': validated_data.pop('password'),
-#             'email': validated_data.pop('email'),
-#         }
+class ProductSerializer(serializers.ModelSerializer):
+    price = serializers.SerializerMethodField()
+    available_stock = serializers.SerializerMethodField()
+    class Meta:
+        model = Product
+        fields = ['id','name','category','brand','description','price','available_stock']
 
-#         # Create the User record
-#         user = User.objects.create_user(**user_data)
+    def get_price(self,obj):
+        price = Price.objects.filter(product_id=obj,is_published= True).first()
+        return price.price if price else None
 
-#         # Create the Employee record linked to the User
-#         employee = Customer.objects.create(user=user, **validated_data)
 
-#         return employee
-        
-        
+
+
