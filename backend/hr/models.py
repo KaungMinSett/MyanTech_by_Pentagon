@@ -23,7 +23,7 @@ class Role(models.Model):
         return self.name
 
 class Employee(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='employee')
     role = models.ForeignKey(Role, on_delete=models.CASCADE)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
