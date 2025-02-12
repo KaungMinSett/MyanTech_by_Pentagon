@@ -27,7 +27,15 @@ const navigation = [
         { name: "Products", href: "/sales/products" }
       ]
     },
-    { name: "Inventory", href: "/inventory", icon: Boxes },
+    {
+      name: "Warehouse",
+      icon: Boxes,
+      children: [
+        { name: "Inventory List", href: "/warehouse/inventory"},
+        { name: "Inbound/Outbound", href: "/warehouse/in-out"},
+        { name: "Inventory Management", href: "/warehouse/update"},
+      ]
+    },
     { name: "Settings", href: "/settings", icon: Settings },
   ]
   
