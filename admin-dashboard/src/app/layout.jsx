@@ -20,6 +20,7 @@ import { Breadcrumb } from "@/components/navigation/Breadcrumb";
 import EmployeesPage from "@/app/employees/page";
 import StaffList from "./employees/page";
 import ProductForm from "./warehouse/inventory-management";
+import ProductList from "./sales/products";
 
 function Layout() {
   const location = useLocation();
@@ -57,7 +58,7 @@ function Layout() {
                   <Route path="orders" element={<OrdersPage />} />
                   <Route path="orders/:id" element={<OrderDetailPage />} />
                   <Route path="history" element={<OrderHistoryPage />} />
-                  <Route path="products" element={<div>Products Page</div>} />
+                  <Route path="products" element={<ProductList/>} />
                 </Routes>
               </ProtectedRoute>
             }
