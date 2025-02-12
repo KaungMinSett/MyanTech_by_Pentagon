@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { Provider } from "react-redux";
 import { store } from "@/redux/store";
 import "./globals.css";
+import InventoryList from "./warehouse/inventory-list";
 
 // Layout Components
 import SidebarLayout from "@/components/layout/SidebarLayout";
@@ -81,10 +82,10 @@ function Layout() {
             }
           />
           <Route
-            path="/inventory"
+            path="/warehouse/inventory"
             element={
               <ProtectedRoute>
-                <div>Inventory Page</div>
+                <InventoryList />
               </ProtectedRoute>
             }
           />
