@@ -5,7 +5,7 @@ from django.utils.timezone import now,timedelta
 admin.site.register(Price)
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'customer_id', 'order_date', 'status')
+    list_display = ('id', 'customer_id', 'order_date', 'status', 'reconciliation_status', 'get_total_price')
     list_filter = ('customer_id', 'status')
 
     def get_queryset(self, request):
@@ -17,3 +17,4 @@ class OrderAdmin(admin.ModelAdmin):
 admin.site.register(Order, OrderAdmin)
 admin.site.register(OrderLogs)
 admin.site.register(OrderItem)
+

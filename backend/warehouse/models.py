@@ -3,6 +3,7 @@ from django.db import models
 # Create your models here.
 from django.conf import settings
 from django.utils import timezone
+from hr.models import Employee
 
 class Brand(models.Model):
     id = models.AutoField(primary_key=True)
@@ -80,8 +81,8 @@ class Inbound(models.Model):
     
     quantity = models.PositiveIntegerField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='product_requests')
-    resolved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='resolved_requests')
+    created_by = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='product_requests')
+    resolved_by = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True, blank=True, related_name='resolved_requests')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -106,7 +107,7 @@ class Outbound(models.Model):
     quantity = models.PositiveIntegerField()
     reason = models.CharField(max_length=20, choices=OUTBOUND_REASONS)
     timestamp = models.DateTimeField(default=timezone.now)
-    staff = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)  # Track staff member
+    employee = models.ForeignKey(Employee, on_delete=models.SET_NULL, null=True)  # Track staff member
 
     def __str__(self):
         return f"{self.product.name} - {self.quantity} units ({self.reason})"

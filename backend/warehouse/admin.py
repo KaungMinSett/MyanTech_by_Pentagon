@@ -42,15 +42,15 @@ class InventoryListAdmin(admin.ModelAdmin):
 
 @admin.register(Outbound)
 class OutboundAdmin(admin.ModelAdmin):
-    list_display = ('id', 'product', 'warehouse', 'quantity', 'reason', 'timestamp', 'staff')
+    list_display = ('id', 'product', 'warehouse', 'quantity', 'reason', 'timestamp', 'employee')
     list_filter = ('reason', 'warehouse', 'timestamp')
-    search_fields = ('product__name', 'staff__username')
-    raw_id_fields = ('product', 'warehouse', 'staff')
+    search_fields = ('product__name', 'employee__username')
+    raw_id_fields = ('product', 'warehouse', 'employee')
     date_hierarchy = 'timestamp'
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related(
-            'product', 'warehouse', 'staff'
+            'product', 'warehouse', 'employee'
         )
 
 @admin.register(Inbound)
