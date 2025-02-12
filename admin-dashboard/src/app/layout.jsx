@@ -12,8 +12,12 @@ import SidebarLayout from "@/components/layout/SidebarLayout";
 import DashboardPage from "@/app/dashboard/page";
 import { AdminLoginPage } from "@/components/auth/login";
 import { OrdersPage } from "@/app/sales/orders/page";
+import { OrderDetailPage } from "@/app/sales/orders/order-detail";
 import { OrderHistoryPage } from "@/app/sales/history/page";
 import { ProtectedRoute } from "@/components/auth/protected-route";
+import { Breadcrumb } from "@/components/navigation/Breadcrumb";
+import EmployeesPage from "@/app/employees/page";
+import StaffList from "./employees/page";
 
 function Layout() {
   const location = useLocation();
@@ -22,9 +26,11 @@ function Layout() {
   return (
     <div className="flex h-screen">
 
-      {!isLoginPage && <SidebarLayout />}
-      <main className="flex-1 overflow-y-auto p-8">
-        <Routes>
+    {!isLoginPage && <SidebarLayout />}
+      <main className="flex-1 overflow-y-auto">
+        <div className="p-8">
+          {!isLoginPage && <Breadcrumb />}
+          <Routes>
           {/* Auth Routes */}
           <Route path="/login" element={<AdminLoginPage />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -47,6 +53,7 @@ function Layout() {
                 <Routes>
                   <Route index element={<Navigate to="orders" replace />} />
                   <Route path="orders" element={<OrdersPage />} />
+                  <Route path="orders/:id" element={<OrderDetailPage />} />
                   <Route path="history" element={<OrderHistoryPage />} />
                   <Route path="products" element={<div>Products Page</div>} />
                 </Routes>
@@ -56,10 +63,12 @@ function Layout() {
 
           {/* Other Protected Routes */}
           <Route
-            path="/employees"
+            path="/employees/*"
             element={
               <ProtectedRoute>
-                <div>Employees Page</div>
+                <Routes>
+                <Route index element={<StaffList />} />
+                </Routes>
               </ProtectedRoute>
             }
           />
@@ -88,6 +97,7 @@ function Layout() {
             }
           />
         </Routes>
+        </div>
       </main>
     </div>
   );

@@ -1,16 +1,18 @@
 import { useState } from 'react';
-import { orders } from '../../../mocks/data';
+import { useSelector, useDispatch } from 'react-redux';
+import { addOrder } from '@/redux/features/orders/ordersSlice';
 import { Calendar } from "lucide-react";
 import { Modal } from '@/components/modal/modal.jsx';
 import { CreateOrderForm } from '@/components/sales/CreateOrderForm';
 import { useNavigate } from 'react-router-dom';
 
 export function OrdersPage() {
+  const dispatch = useDispatch();
+  const { orders } = useSelector((state) => state.orders);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [ordersList, setOrdersList] = useState(orders);
   const navigate = useNavigate();
 
   const handleHistoryClick = () => {
@@ -18,14 +20,14 @@ export function OrdersPage() {
   };
 
   const filteredOrders = (startDate && endDate) 
-    ? ordersList.filter(order => {
+    ? orders.filter(order => {
         const orderDate = new Date(order.date);
         return orderDate >= new Date(startDate) && orderDate <= new Date(endDate);
       })
-    : ordersList;
+    : orders;
 
   const handleCreateOrder = (newOrder) => {
-    setOrdersList([newOrder, ...ordersList]);
+    dispatch(addOrder(newOrder));
     setShowCreateModal(false);
   };
 
@@ -72,12 +74,6 @@ export function OrdersPage() {
             )}
           </div>
           <div className="flex gap-4">
-          <button 
-            onClick={handleHistoryClick}
-            className="px-4 py-2 text-sm border rounded-md hover:bg-gray-50"
-          >
-            Order History
-          </button>
             <button 
   onClick={() => setShowCreateModal(true)}
   className="px-4 py-2 text-sm bg-[#0066FF] text-white rounded-md hover:bg-[#0052CC] transition-colors"
@@ -129,7 +125,11 @@ export function OrdersPage() {
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           {filteredOrders.map((order) => (
-            <tr key={order.id} className="hover:bg-gray-50">
+            <tr 
+            key={order.id} 
+            className="hover:bg-gray-50 cursor-pointer"
+            onClick={() => navigate(`/sales/orders/${order.id.replace('#', '')}`)}
+          >
               <td className="px-6 py-4 whitespace-nowrap">
                 <input type="checkbox" className="h-4 w-4 rounded border-gray-300" />
               </td>
