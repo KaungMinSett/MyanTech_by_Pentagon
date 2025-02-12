@@ -64,7 +64,7 @@ class InboundViewSet(viewsets.ModelViewSet):
 
     # 3. Auto-set 'created_by' when staff creates a record
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        serializer.save(created_by=self.request.user.employee)
 
 
 
