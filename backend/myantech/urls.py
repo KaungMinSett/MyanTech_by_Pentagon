@@ -29,6 +29,7 @@ urlpatterns = [
     path('delivery/', include('delivery.urls')),
     path('auth/', include('djoser.urls')),  # General Djoser routes
     path('auth/', include('core.urls')),  
+    path('logistic/', include('delivery.urls')),  
     path('api/', include('finance.urls')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

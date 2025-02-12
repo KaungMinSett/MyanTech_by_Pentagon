@@ -1,60 +1,50 @@
-# views.py
-from rest_framework import viewsets, status
+from rest_framework import viewsets
 from rest_framework.response import Response
+from rest_framework.exceptions import MethodNotAllowed
 from rest_framework.decorators import action
 from .models import DeliveryGroup, Delivery
-from .serializers import *
-from django.db.models import Count
+from .serializers import DeliveryGroupSerializer, DeliverySerializer, DeliveryUpdateSerializer
+from .utils import assign_deliveries_to_drivers
 
 class DeliveryGroupViewSet(viewsets.ModelViewSet):
-    queryset = DeliveryGroup.objects.all()
+    queryset = DeliveryGroup.objects.prefetch_related('deliveries').all()
     serializer_class = DeliveryGroupSerializer
+    
+    def create(self, request, *args, **kwargs):
+        raise MethodNotAllowed('POST', detail="Creating DeliveryGroup via POST is not allowed.")
 
     @action(detail=False, methods=['post'])
-    def trigger_delivery_assignment(self, request):
-        """
-        Custom action to trigger delivery assignment process
-        """
-        try:
-            warehouse_id = request.data.get('warehouse_id')
-            DeliveryGroup.objects.create_delivery_groups(warehouse_id)
-            return Response({"message": "Delivery assignment process triggered"}, status=status.HTTP_200_OK)
-        except ValueError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    def delivery_assignment(self, request):
+        assign_deliveries_to_drivers()
+        return Response({"message": "Deliveries assigned successfully."}, status=200)
 
 class DeliveryViewSet(viewsets.ModelViewSet):
-    queryset = Delivery.objects.all()
     serializer_class = DeliverySerializer
+    
+    def get_queryset(self):
+        # Filter deliveries based on the nested delivery group
+        deliverygroup_id = self.kwargs.get('deliverygroup_pk')
+        if deliverygroup_id:
+            return Delivery.objects.filter(delivery_group_id=deliverygroup_id)
+        return Delivery.objects.none()  # Return empty queryset if no deliverygroup_pk is provided
+
+    def get_serializer_class(self):
+        if self.action in ['update', 'partial_update']:
+            return DeliveryUpdateSerializer
+        return super().get_serializer_class()
+
+    def create(self, request, *args, **kwargs):
+        raise MethodNotAllowed('POST', detail="Creating Delivery via POST is not allowed.")
 
     @action(detail=True, methods=['patch'])
-    def update_status(self, request, pk=None):
+    def complete(self, request, pk=None):
         """
         Custom action for drivers to update order status
         """
         delivery = self.get_object()
         status = request.data.get('status')
         if status not in [Delivery.PENDING, Delivery.IN_PROGRESS, Delivery.COMPLETE]:
-            return Response({"error": "Invalid status"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Invalid status"}, status=400)
         delivery.status = status
         delivery.save()
-        return Response({"message": "Order status updated"}, status=status.HTTP_200_OK)
-
-    @action(detail=False, methods=['get'])
-    def assigned_groups(self, request):
-        """
-        Custom action for drivers to get assigned delivery groups
-        """
-        employee_id = request.query_params.get('employee_id')
-        groups = DeliveryGroup.objects.filter(employee_id=employee_id)
-        serializer = self.get_serializer(groups, many=True)
-        return Response(serializer.data)
-
-    @action(detail=False, methods=['get'])
-    def deliveries(self, request):
-        """
-        Custom action for drivers to get deliveries within an assigned group
-        """
-        delivery_group_id = request.query_params.get('delivery_group_id')
-        deliveries = Delivery.objects.filter(delivery_group_id=delivery_group_id)
-        serializer = self.get_serializer(deliveries, many=True)
-        return Response(serializer.data)
+        return Response({"message": "Order status updated"}, status=200)
