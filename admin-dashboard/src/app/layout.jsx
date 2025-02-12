@@ -19,6 +19,7 @@ import { ProtectedRoute } from "@/components/auth/protected-route";
 import { Breadcrumb } from "@/components/navigation/Breadcrumb";
 import EmployeesPage from "@/app/employees/page";
 import StaffList from "./employees/page";
+import ProductForm from "./warehouse/inventory-management";
 
 function Layout() {
   const location = useLocation();
@@ -86,6 +87,14 @@ function Layout() {
             element={
               <ProtectedRoute>
                 <InventoryList />
+              </ProtectedRoute>
+            }
+          />
+           <Route
+            path="/warehouse/update"
+            element={
+              <ProtectedRoute>
+                <ProductForm/>
               </ProtectedRoute>
             }
           />
