@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { Provider } from "react-redux";
 import { store } from "@/redux/store";
 import "./globals.css";
+import InventoryList from "./warehouse/inventory-list";
 
 // Layout Components
 import SidebarLayout from "@/components/layout/SidebarLayout";
@@ -18,6 +19,7 @@ import { ProtectedRoute } from "@/components/auth/protected-route";
 import { Breadcrumb } from "@/components/navigation/Breadcrumb";
 import EmployeesPage from "@/app/employees/page";
 import StaffList from "./employees/page";
+import ProductForm from "./warehouse/inventory-management";
 
 function Layout() {
   const location = useLocation();
@@ -81,10 +83,18 @@ function Layout() {
             }
           />
           <Route
-            path="/inventory"
+            path="/warehouse/inventory"
             element={
               <ProtectedRoute>
-                <div>Inventory Page</div>
+                <InventoryList />
+              </ProtectedRoute>
+            }
+          />
+           <Route
+            path="/warehouse/update"
+            element={
+              <ProtectedRoute>
+                <ProductForm/>
               </ProtectedRoute>
             }
           />
