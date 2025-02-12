@@ -17,6 +17,7 @@ import { OrderHistoryPage } from "@/app/sales/history/page";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 import { Breadcrumb } from "@/components/navigation/Breadcrumb";
 import EmployeesPage from "@/app/employees/page";
+import StaffList from "./employees/page";
 
 function Layout() {
   const location = useLocation();
@@ -62,10 +63,12 @@ function Layout() {
 
           {/* Other Protected Routes */}
           <Route
-            path="/employees"
+            path="/employees/*"
             element={
               <ProtectedRoute>
-                <EmployeesPage />
+                <Routes>
+                <Route index element={<StaffList />} />
+                </Routes>
               </ProtectedRoute>
             }
           />

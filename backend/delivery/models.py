@@ -25,8 +25,8 @@ class DeliveryGroup(models.Model):
     
     # Tracking fields
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=PENDING)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6)   # Current location
-    longitude = models.DecimalField(max_digits=9, decimal_places=6)  # Current location
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)   # Current location
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)  # Current location
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -52,16 +52,12 @@ class Delivery(models.Model):
     ]
     
     # Relationships
-    delivery_group = models.ForeignKey(DeliveryGroup, on_delete=models.CASCADE, null=True, blank=True)
+    delivery_group = models.ForeignKey(DeliveryGroup, on_delete=models.CASCADE, null=True, blank=True, related_name="deliveries")
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name="delivery")
     
     # Delivery details
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=PENDING)
-    sequence_number = models.PositiveIntegerField(default=0)  # Order in delivery route
     remark = models.TextField(max_length=255, blank=True)  # Delivery notes
-    
-    # Distance calculation
-    distance_from_warehouse = models.FloatField(null=True, blank=True)
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)

@@ -8,7 +8,7 @@ from django.db.models import Sum, F
 
 
 class Price(models.Model):
-    product_id = models.ForeignKey(InventoryList, on_delete=models.CASCADE, null=True)
+    product = models.ForeignKey(InventoryList, on_delete=models.CASCADE)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     is_published = models.BooleanField(default=False)
     image = models.ImageField(
@@ -17,26 +17,24 @@ class Price(models.Model):
         null=True,   # Allow NULL in database
     )
 
-
     def get_available_stock(self):
 
-        product = self.product_id
+        product = self.product
         return product.quantity
 
 class Order(models.Model):
-    customer_id = models.ForeignKey('shop.Customer', on_delete=models.CASCADE, related_name='orders')
-    address = models.ForeignKey('shop.Address',on_delete=models.CASCADE, default=1)
-    staff_id = models.ForeignKey(Employee, on_delete=models.CASCADE,null=True)
+    customer = models.ForeignKey('shop.Customer', on_delete=models.CASCADE, related_name='orders')
+    address = models.ForeignKey('shop.Address',on_delete=models.CASCADE)
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE,null=True)
     order_date = models.DateTimeField(auto_now=True)
     order_type = models.CharField(max_length=20, choices=[('phone', 'Phone'), ('website', 'Website')])
     status = models.CharField(max_length=20, choices=[
         ('Pending','Pending'),
         ('Approved','Approved'),
         ('Cancelled','Cancelled')
-    ])
-    created_at= models.DateTimeField(auto_now=True)
-    updated_at =models.DateTimeField(auto_now_add=True)
-
+    ], default="Pending")
+    created_at= models.DateTimeField(auto_now_add=True)
+    updated_at =models.DateTimeField(auto_now=True)
 
     def approve(self):
         if self.status=='Pending':
@@ -45,7 +43,7 @@ class Order(models.Model):
 
     def get_total_price(self):
         return self.order_items.aggregate(
-            total_price=Sum(F('quantity') * F('price'))
+            total_price=Sum(F('quantity') * F('unit_price'))
         )['total_price'] or 0
 
     def __str__(self):
@@ -53,7 +51,7 @@ class Order(models.Model):
     
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="order_items")
-    product_id = models.ForeignKey(Price,on_delete=models.CASCADE)
+    product = models.ForeignKey(Price,on_delete=models.PROTECT)
     quantity = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
 
@@ -61,10 +59,10 @@ class OrderItem(models.Model):
         return f"Item {self.id} in Order {self.order.id}"
 
     def total_price(self):
-        return self.product_id.price * self.quantity
+        return self.product.price * self.quantity
 
 class OrderLogs(models.Model):
-    order_id =models.ForeignKey(Order, on_delete=models.CASCADE)
+    order =models.ForeignKey(Order, on_delete=models.CASCADE)
     action = models.TextField()
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
