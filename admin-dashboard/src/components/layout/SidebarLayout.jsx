@@ -23,6 +23,7 @@ const navigation = [
       icon: ShoppingCart,
       children: [
         { name: "Orders", href: "/sales/orders" },
+        { name: "Order History", href: "/sales/history" },
         { name: "Products", href: "/sales/products" }
       ]
     },
