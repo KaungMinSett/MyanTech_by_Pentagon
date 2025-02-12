@@ -18,7 +18,7 @@ def handle_completed_delivery_group(sender, instance, **kwargs):
         if not hasattr(instance, 'cash_submission'):
             with transaction.atomic():
                    # Calculate total using Django's ORM aggregation (not Python sum())
-                total = instance.delivery_set.aggregate(
+                total = instance.deliveries.aggregate(
                 total_cash=Coalesce(
                     Sum(F('order__order_items__quantity') * F('order__order_items__unit_price')),
                     Value(Decimal('0.00')),

@@ -35,11 +35,19 @@ class Order(models.Model):
     status = models.CharField(max_length=20, choices=[
         ('Pending','Pending'),
         ('Approved','Approved'),
+        ('Delivered', 'Delivered'),
         ('Cancelled','Cancelled')
     ], default="Pending")
+
+    warehouse_ready = models.BooleanField(default=False)
+
     created_at= models.DateTimeField(auto_now_add=True)
     updated_at =models.DateTimeField(auto_now=True)
-
+    reconciliation_status = models.CharField(
+    max_length=20, 
+    choices=RECONCILIATION_STATUS, 
+    default='PENDING'
+)
     def approve(self):
         if self.status=='Pending':
             self.status ='Approved'
@@ -64,7 +72,7 @@ class Order(models.Model):
     
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="order_items")
-    product = models.ForeignKey(Price,on_delete=models.PROTECT)
+    product = models.ForeignKey(Price,on_delete=models.PROTECT) # published products with price
     quantity = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
 
