@@ -10,7 +10,13 @@ class CashSubmissionAdmin(admin.ModelAdmin):
     actions = ['mark_verified']
 
     def mark_verified(self, request, queryset):
-        queryset.update(status='VERIFIED')
+         
+        for submission in queryset:
+            submission.status = 'VERIFIED'
+            submission.save()  # Triggers post_save signal
+        self.message_user(request, f"{queryset.count()} submissions marked as verified.")
+    mark_verified.short_description = "Mark selected submissions as VERIFIED"
+        
     mark_verified.short_description = "Mark selected submissions as VERIFIED"
 
 
