@@ -8,11 +8,14 @@ def assign_deliveries_to_drivers():
     print("triggered")
     
     # Get pending deliveries
-    pending_deliveries = Delivery.objects.filter(status='P', delivery_group__isnull=True)
+    pending_deliveries = Delivery.objects.filter(status='P', delivery_group__isnull=True, order__warehouse_ready=True)
+    print(len(pending_deliveries))
+    # print(len(pending_deliveries) + " Deliveries Found to assign")
     # Don't assign if not enough delivieries yet
     if (len(pending_deliveries) < DELIVERY_THRESHOLD_LEVEL):
+        print("Shouldn't assign now")
         return
-    
+    print("Should assign now")
     # Get warehouse coordinates (Assuming warehouse ID 1 is the default)
     warehouse = Warehouse.objects.filter(id=1).first()
     if not warehouse:

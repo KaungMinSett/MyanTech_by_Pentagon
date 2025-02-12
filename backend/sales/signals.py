@@ -5,7 +5,9 @@ from delivery.models import Delivery
 
 @receiver(post_save, sender=Order)
 def create_delivery_after_approval(sender, instance, created, **kwargs):
-    if instance.status == "Approved":
+    # Check if there is already an active delivery for the order
+    active_delivery_exists = Delivery.objects.filter(order=instance).exclude(status="F").exists()
+    if not active_delivery_exists and instance.status == "Approved":
         Delivery.objects.create(
             order=instance
         )
