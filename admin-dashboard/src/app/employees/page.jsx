@@ -17,6 +17,7 @@ import {
   setFilter,
   setSearchQuery,
 } from "@/redux/features/employees/employeesSlice";
+import { toast } from "react-hot-toast";
 
 export default function StaffList() {
   const dispatch = useDispatch();
@@ -30,10 +31,14 @@ export default function StaffList() {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedMember, setSelectedMember] = useState(null);
 
-  const handleDeleteClick = (id) => {
-    setDeleteModalOpen(true);
-    dispatch(deleteStaff(id));
-    handleMenuClose();
+  const handleDeleteClick = async (id) => {
+    try {
+      await dispatch(deleteStaff(id)).unwrap();
+      toast.success("Employee deleted successfully!");
+      handleMenuClose();
+    } catch (err) {
+      toast.error(err.message || "Failed to delete staff member");
+    }
   };
 
   const confirmDelete = () => {

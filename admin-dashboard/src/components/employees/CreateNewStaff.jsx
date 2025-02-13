@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
+import { toast } from "react-hot-toast";
 import { createStaff } from "@/redux/features/employees/employeesSlice";
 import { departments, roles } from "@/mocks/employees/staff-data";
 
@@ -48,10 +49,12 @@ const CreateNewStaff = ({ onClose }) => {
 
       const result = await dispatch(createStaff(formData)).unwrap();
       if (result) {
+        toast.success("Employee added successfully!");
         onClose();
       }
     } catch (err) {
       setError(err.message || "Failed to create staff member");
+      toast.error(err.message || "Failed to create staff member");
     }
   };
 

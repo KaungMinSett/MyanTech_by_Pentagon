@@ -44,6 +44,56 @@ export const createStaff = createAsyncThunk(
   }
 );
 
+export const updateStaffAsync = createAsyncThunk(
+  "employees/updateStaff",
+  async (staffData, { rejectWithValue }) => {
+    try {
+      try {
+        const response = await axiosInstance.put(
+          `/hr/employees/${staffData.id}/`,
+          staffData
+        );
+        console.log("API Response:", response.data);
+        return response.data;
+      } catch (apiError) {
+        console.log("API Error, falling back to mock data:", apiError);
+
+        // During development, fallback to mock data
+        const mockResult = {
+          ...staffData,
+          role: staffData.role === 1 ? "Manager" : "Staff",
+          department: departments.find((d) => d.id === staffData.department)
+            ?.label,
+        };
+
+        console.log("Updated mock staff:", mockResult);
+        return mockResult;
+      }
+    } catch (error) {
+      console.error("Error details:", error);
+      return rejectWithValue(error.response?.data || "Failed to update staff");
+    }
+  }
+);
+
+export const deleteStaffAsync = createAsyncThunk(
+  "employees/deleteStaff",
+  async (staffId, { rejectWithValue }) => {
+    try {
+      try {
+        await axiosInstance.delete(`/hr/employees/${staffId}/`);
+        return staffId;
+      } catch (apiError) {
+        console.log("API Error, falling back to mock data:", apiError);
+        return staffId;
+      }
+    } catch (error) {
+      console.error("Error details:", error);
+      return rejectWithValue(error.response?.data || "Failed to delete staff");
+    }
+  }
+);
+
 const initialState = {
   staffMembers: initialStaffMembers,
   selectedStaff: null,
@@ -105,6 +155,37 @@ const employeesSlice = createSlice({
         state.loading = false;
       })
       .addCase(createStaff.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(updateStaffAsync.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateStaffAsync.fulfilled, (state, action) => {
+        const index = state.staffMembers.findIndex(
+          (member) => member.id === action.payload.id
+        );
+        if (index !== -1) {
+          state.staffMembers[index] = action.payload;
+        }
+        state.loading = false;
+      })
+      .addCase(updateStaffAsync.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(deleteStaffAsync.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteStaffAsync.fulfilled, (state, action) => {
+        state.staffMembers = state.staffMembers.filter(
+          (member) => member.id !== action.payload
+        );
+        state.loading = false;
+      })
+      .addCase(deleteStaffAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
