@@ -24,7 +24,7 @@ class WarehouseSerializer(serializers.ModelSerializer):
 class InventoryListSerializer(serializers.ModelSerializer):
     class Meta:
         model = InventoryList
-        fields = ['id', 'product', 'warehouse', 'quantity']
+        fields = ['id', 'product', 'warehouse', 'quantity', 'zone']
     
 class InboundSerializer(serializers.ModelSerializer):
     class Meta:

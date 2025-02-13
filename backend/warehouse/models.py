@@ -8,6 +8,10 @@ from hr.models import Employee
 class Brand(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, unique=True)
+    
+    def save(self, *args, **kwargs):
+        self.name = self.name.lower()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -15,6 +19,10 @@ class Brand(models.Model):
 class Category(models.Model):
      id = models.AutoField(primary_key=True)
      name = models.CharField(max_length=100, unique=True)
+     
+     def save(self, *args, **kwargs):
+        self.name = self.name.lower()
+        super().save(*args, **kwargs)
      
      def __str__(self):
         return self.name
@@ -33,15 +41,13 @@ class InventoryList(models.Model):
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
     warehouse = models.ForeignKey('Warehouse', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=0)
-
+    zone = models.CharField(max_length=50, default='default_zone')
     class Meta:
         # Ensure a product can only have one entry per warehouse
-        unique_together = ('product', 'warehouse')
+        unique_together = ('product', 'warehouse', 'zone')
 
     def __str__(self):
-        return f"{self.product.name} in {self.warehouse.name}: {self.quantity} units"
-
-
+        return f"{self.product.name} in {self.zone} of {self.warehouse.name}: {self.quantity} units"
 
 class Product(models.Model):
     id = models.AutoField(primary_key=True)
@@ -60,7 +66,6 @@ class Product(models.Model):
             return InventoryList.objects.get(product=self, warehouse=warehouse).quantity
         except InventoryList.DoesNotExist:
             return 0
-   
 
     def __str__(self):
         return self.name
