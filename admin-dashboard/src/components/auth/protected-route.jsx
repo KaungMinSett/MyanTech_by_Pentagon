@@ -45,12 +45,11 @@ export function ProtectedRoute({ children }) {
   const { isAuthenticated, token, user } = useSelector((state) => state.auth);
   const location = useLocation();
 
-  // First check authentication
   if (!isAuthenticated || !token) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Then check authorization
+  // Check user permissions based on role and department
   if (!checkAuthorization(user, location.pathname)) {
     return <Forbidden />;
   }
