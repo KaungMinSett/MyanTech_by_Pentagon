@@ -1,10 +1,17 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "@/redux/store";
 import "./globals.css";
 import InventoryList from "./warehouse/inventory-list";
+import InboundOutbound from "./warehouse/inbound-outbound";
 
 // Layout Components
 import SidebarLayout from "@/components/layout/SidebarLayout";
@@ -17,8 +24,8 @@ import { OrderDetailPage } from "@/app/sales/orders/order-detail";
 import { OrderHistoryPage } from "@/app/sales/history/page";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 import { Breadcrumb } from "@/components/navigation/Breadcrumb";
-import EmployeesPage from "@/app/employees/page";
 import StaffList from "./employees/page";
+import ConfirmProducts from "./warehouse/confirm-products";
 import ProductForm from "./warehouse/inventory-management";
 import ProductList from "./sales/products";
 
@@ -28,28 +35,27 @@ function Layout() {
 
   return (
     <div className="flex h-screen">
-
-    {!isLoginPage && <SidebarLayout />}
+      {!isLoginPage && <SidebarLayout />}
       <main className="flex-1 overflow-y-auto">
         <div className="p-8">
           {!isLoginPage && <Breadcrumb />}
           <Routes>
-          {/* Auth Routes */}
-          <Route path="/login" element={<AdminLoginPage />} />
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            {/* Auth Routes */}
+            <Route path="/login" element={<AdminLoginPage />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-          {/* Dashboard */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
-          />
+            {/* Dashboard */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Sales Routes */}
-          <Route
+            {/* Sales Routes */}
+            <Route
             path="/sales/*"
             element={
               <ProtectedRoute>
@@ -64,50 +70,55 @@ function Layout() {
             }
           />
 
-          {/* Other Protected Routes */}
-          <Route
-            path="/employees/*"
-            element={
-              <ProtectedRoute>
-                <Routes>
-                <Route index element={<StaffList />} />
-                </Routes>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/finance"
-            element={
-              <ProtectedRoute>
-                <div>Finance Page</div>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/warehouse/inventory"
-            element={
-              <ProtectedRoute>
-                <InventoryList />
-              </ProtectedRoute>
-            }
-          />
-           <Route
-            path="/warehouse/update"
-            element={
-              <ProtectedRoute>
-                <ProductForm/>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <ProtectedRoute>
-                <div>Settings Page</div>
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+            {/* Warehouse Routes */}
+            <Route
+              path="/warehouse/*"
+              element={
+                <ProtectedRoute>
+                  <Routes>
+                    <Route path="inventory" element={<InventoryList />} />
+                    <Route path="in-out" element={<InboundOutbound />} />
+                    <Route
+                      path="confirm-products"
+                      element={<ConfirmProducts />}
+                    />
+                    <Route
+                    path="/warehouse/update"
+                    element={
+                      <ProtectedRoute>
+                        <ProductForm/>
+                      </ProtectedRoute>
+                    }
+                  />
+
+            {/* Other Protected Routes */}
+            <Route
+              path="/employees/*"
+              element={
+                <ProtectedRoute>
+                  <Routes>
+                    <Route index element={<StaffList />} />
+                  </Routes>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/finance"
+              element={
+                <ProtectedRoute>
+                  <div>Finance Page</div>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <div>Settings Page</div>
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
         </div>
       </main>
     </div>

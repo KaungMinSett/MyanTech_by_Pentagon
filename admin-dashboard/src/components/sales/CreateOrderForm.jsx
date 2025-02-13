@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Button from "@mui/material/Button";
 
 export function CreateOrderForm({ onSubmit }) {
   const [formData, setFormData] = useState({
@@ -71,13 +72,14 @@ export function CreateOrderForm({ onSubmit }) {
           placeholder="iPhone 14 Pro, AirPods Pro"
         />
       </div>
-      <div className="flex justify-end space-x-2 pt-4">
-        <button
+      <div className="flex justify-center space-x-2 pt-4">
+        <Button
           type="submit"
-          className="px-4 py-2 text-sm bg-[#0066FF] text-white rounded-md hover:bg-[#0052CC] transition-colors"
+          variant="contained"
+          className="px-4 py-2 text-sm"
         >
           Create Order
-        </button>
+        </Button>
       </div>
     </form>
   );

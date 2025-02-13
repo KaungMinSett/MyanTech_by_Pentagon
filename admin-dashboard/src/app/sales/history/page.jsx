@@ -11,7 +11,7 @@ export function OrderHistoryPage() {
         <h2 className="text-2xl font-bold mb-4">Order History</h2>
       </div>
 
-      <div className="rounded-md border overflow-y-auto overflow-x-hidden max-h-[calc(100vh-150px)]">
+      <div className="rounded-md border overflow-y-auto overflow-x-hidden max-h-[calc(100vh-180px)]">
         <table className="w-full divide-y divide-gray-200 table-fixed">
           <thead className="bg-gray-50 sticky top-0">
             <tr>

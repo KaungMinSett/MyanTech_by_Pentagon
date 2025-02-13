@@ -1,58 +1,63 @@
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { addOrder } from "@/redux/features/orders/ordersSlice";
+import {
+  addOrder,
+  setDateFilter,
+  selectFilteredOrders,
+  setSearchQuery,
+} from "@/redux/features/orders/ordersSlice";
 import { Calendar } from "lucide-react";
 import { Modal } from "@/components/modal/modal.jsx";
 import { CreateOrderForm } from "@/components/sales/CreateOrderForm";
 import { useNavigate } from "react-router-dom";
+import Button from "@mui/material/Button";
 
 export function OrdersPage() {
   const dispatch = useDispatch();
-  const { orders } = useSelector((state) => state.orders);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const filteredOrders = useSelector(selectFilteredOrders);
+  const dateFilter = useSelector((state) => state.orders.dateFilter);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const navigate = useNavigate();
-
-  const handleHistoryClick = () => {
-    navigate("/sales/history");
-  };
-
-  const filteredOrders =
-    startDate && endDate
-      ? orders.filter((order) => {
-          const orderDate = new Date(order.date);
-          return (
-            orderDate >= new Date(startDate) && orderDate <= new Date(endDate)
-          );
-        })
-      : orders;
 
   const handleCreateOrder = (newOrder) => {
     dispatch(addOrder(newOrder));
     setShowCreateModal(false);
   };
 
+  const handleDateFilterChange = (startDate, endDate) => {
+    dispatch(setDateFilter({ startDate, endDate }));
+  };
+
+  const handleSearch = (e) => {
+    dispatch(setSearchQuery(e.target.value));
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-4">Orders</h2>
-        <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">Orders</h2>
+        <div className="flex items-center gap-4">
           <div className="relative">
-            <button
+            <Button
+              variant="outlined"
+              size="small"
+              color="gray"
               onClick={() => setShowDatePicker(!showDatePicker)}
-              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm border rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm"
             >
               <Calendar className="h-4 w-4 text-gray-500" />
               <span className="text-gray-600">
-                {startDate && endDate
-                  ? `${new Date(startDate).toLocaleDateString()} - ${new Date(
-                      endDate
+                {dateFilter.startDate && dateFilter.endDate
+                  ? `${new Date(
+                      dateFilter.startDate
+                    ).toLocaleDateString()} - ${new Date(
+                      dateFilter.endDate
                     ).toLocaleDateString()}`
                   : "Select date range"}
               </span>
-            </button>
+            </Button>
             {showDatePicker && (
               <div className="absolute top-full left-0 mt-2 bg-white border rounded-lg shadow-lg z-10 p-4 w-72">
                 <div className="grid grid-cols-2 gap-4">
@@ -62,8 +67,13 @@ export function OrdersPage() {
                     </label>
                     <input
                       type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
+                      value={dateFilter.startDate}
+                      onChange={(e) =>
+                        handleDateFilterChange(
+                          e.target.value,
+                          dateFilter.endDate
+                        )
+                      }
                       className="w-full px-2 py-1 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
                   </div>
@@ -73,8 +83,13 @@ export function OrdersPage() {
                     </label>
                     <input
                       type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
+                      value={dateFilter.endDate}
+                      onChange={(e) =>
+                        handleDateFilterChange(
+                          dateFilter.startDate,
+                          e.target.value
+                        )
+                      }
                       className="w-full px-2 py-1 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
                   </div>
