@@ -18,7 +18,7 @@ function FinanceList() {
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Finance Overview</h2>
+        <h2 className="text-2xl font-bold text-gray-900">Finance</h2>
         <div className="flex items-center gap-4">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -31,7 +31,7 @@ function FinanceList() {
             />
           </div>
           <select
-            className="border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
           >
