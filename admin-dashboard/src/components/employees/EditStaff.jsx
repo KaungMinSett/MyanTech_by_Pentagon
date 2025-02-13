@@ -3,6 +3,7 @@ import { useDispatch } from "react-redux";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
+import { toast } from "react-hot-toast";
 import { departments, roles } from "@/mocks/employees/staff-data";
 import { updateStaff } from "@/redux/features/employees/employeesSlice";
 
@@ -24,11 +25,18 @@ export default function EditStaff({ onClose, staffMember, onUpdate }) {
     }
   }, [staffMember]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(updateStaff(formData));
-    onUpdate(formData);
-    onClose();
+    try {
+      const result = await dispatch(updateStaff(formData)).unwrap();
+      if (result) {
+        toast.success("Employee updated successfully!");
+        onUpdate(result);
+        onClose();
+      }
+    } catch (err) {
+      toast.error(err.message || "Failed to update staff member");
+    }
   };
 
   const handleChange = (e) => {

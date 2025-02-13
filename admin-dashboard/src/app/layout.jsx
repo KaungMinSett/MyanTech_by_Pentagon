@@ -12,6 +12,9 @@ import { store } from "@/redux/store";
 import "./globals.css";
 import InventoryList from "./warehouse/inventory-list";
 import InboundOutbound from "./warehouse/inbound-outbound";
+import { Toaster } from "react-hot-toast";
+import { Global } from "@emotion/react";
+import { toastStyles, toastConfig } from "@/styles/toast";
 
 // Layout Components
 import SidebarLayout from "@/components/layout/SidebarLayout";
@@ -57,14 +60,7 @@ function Layout() {
                 </ProtectedRoute>
               }
             />
-                    <Route
-              path="/report"
-              element={
-          
-                 <SalesReports/>
-       
-              }
-            />
+            <Route path="/report" element={<SalesReports />} />
 
             {/* Sales Routes */}
             <Route
@@ -137,6 +133,8 @@ function Layout() {
           </Routes>
         </div>
       </main>
+      <Global styles={toastStyles} />
+      <Toaster position="top-center" toastOptions={toastConfig} />
     </div>
   );
 }
