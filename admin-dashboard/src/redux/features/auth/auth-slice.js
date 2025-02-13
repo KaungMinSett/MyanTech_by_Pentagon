@@ -13,7 +13,7 @@ export const loginUser = createAsyncThunk(
   async ({ username, password }, { rejectWithValue }) => {
     try {
       try {
-        const response = await axiosInstance.post("/auth/employees/login/", {
+        const response = await axiosInstance.post("/employees/login/", {
           username,
           password,
         });
