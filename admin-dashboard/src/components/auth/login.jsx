@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { loginUser } from "@/redux/features/auth/auth-slice";
 
 export function AdminLoginPage() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ export function AdminLoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const result = await dispatch(loginUser({ email, password })).unwrap();
+      const result = await dispatch(loginUser({ username, password })).unwrap();
       if (result) {
         navigate("/dashboard");
       }
@@ -25,7 +25,7 @@ export function AdminLoginPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen">
-      <div className="w-full max-w-sm px-4">
+      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
         <h1 className="text-2xl font-bold text-center mb-2">Admin Login</h1>
         <p className="text-center text-gray-600 mb-8">
           Enter your credentials to access your account
@@ -35,19 +35,19 @@ export function AdminLoginPage() {
           <div className="space-y-4">
             <div>
               <label
-                htmlFor="email"
+                htmlFor="username"
                 className="block text-sm font-medium text-gray-700"
               >
-                Email
+                Username
               </label>
               <input
-                id="email"
-                type="email"
+                id="username"
+                type="text"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="Enter your email"
+                placeholder="Enter your username"
               />
             </div>
 
