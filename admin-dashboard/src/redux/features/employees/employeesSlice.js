@@ -2,6 +2,27 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { initialStaffMembers, departments } from "@/mocks/employees/staff-data";
 import axiosInstance from "@/api/axios";
 
+export const fetchEmployees = createAsyncThunk(
+  "employees/fetchEmployees",
+  async (_, { rejectWithValue }) => {
+    try {
+      try {
+        const response = await axiosInstance.get("/hr/employees/");
+        console.log("API Response:", response.data);
+        return response.data;
+      } catch (apiError) {
+        console.log("API Error, falling back to mock data:", apiError);
+        return initialStaffMembers; // Return mock data during development
+      }
+    } catch (error) {
+      console.error("Error details:", error);
+      return rejectWithValue(
+        error.response?.data || "Failed to fetch employees"
+      );
+    }
+  }
+);
+
 export const createStaff = createAsyncThunk(
   "employees/createStaff",
   async (staffData, { rejectWithValue }) => {
@@ -94,18 +115,16 @@ export const deleteStaffAsync = createAsyncThunk(
   }
 );
 
-const initialState = {
-  staffMembers: initialStaffMembers,
-  selectedStaff: null,
-  filter: "",
-  searchQuery: "",
-  loading: false,
-  error: null,
-};
-
 const employeesSlice = createSlice({
   name: "employees",
-  initialState,
+  initialState: {
+    staffMembers: [],
+    selectedStaff: null,
+    filter: "",
+    searchQuery: "",
+    loading: false,
+    error: null,
+  },
   reducers: {
     addStaff: (state, action) => {
       const maxId = Math.max(
@@ -146,6 +165,18 @@ const employeesSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(fetchEmployees.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchEmployees.fulfilled, (state, action) => {
+        state.staffMembers = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchEmployees.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
       .addCase(createStaff.pending, (state) => {
         state.loading = true;
         state.error = null;
