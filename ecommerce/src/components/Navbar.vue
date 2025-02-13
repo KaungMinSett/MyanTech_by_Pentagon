@@ -1,5 +1,5 @@
 <template>
-    <div class="navbar bg-neutral text-neutral-content w-full px-10 py-2 justify-between fixed top-0 left-0 z-10">
+    <div class="navbar bg-base-300 w-full px-10 py-2 justify-between fixed top-0 left-0 z-10">
         <div class="flex-none lg:hidden">
             <label for="my-drawer-3" aria-label="open sidebar" class="btn btn-square btn-ghost">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"

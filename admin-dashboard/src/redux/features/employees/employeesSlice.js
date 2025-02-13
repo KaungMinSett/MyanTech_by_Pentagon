@@ -1,16 +1,45 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { initialStaffMembers } from "@/mocks/employees/staff-data";
+import { initialStaffMembers, departments } from "@/mocks/employees/staff-data";
 import axiosInstance from "@/api/axios";
 
-// Create new staff member
 export const createStaff = createAsyncThunk(
   "employees/createStaff",
   async (staffData, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.post("/hr/employees/", staffData);
-      return response.data;
+      try {
+        const response = await axiosInstance.post("/hr/employees/", staffData);
+        console.log("API Response:", response.data);
+        return response.data;
+      } catch (apiError) {
+        console.log("API Error, falling back to mock data:", apiError);
+
+        const maxId = Math.max(
+          ...initialStaffMembers.map((staff) => staff.id),
+          0
+        );
+
+        const mockResult = {
+          id: maxId + 1,
+          name: staffData.username,
+          email: staffData.email,
+          password: staffData.password,
+          role: staffData.role === 1 ? "Manager" : "Staff",
+          department: departments.find((d) => d.id === staffData.department)
+            ?.label,
+          joinDate: staffData.joinDate,
+          status: staffData.status,
+        };
+
+        console.log("Created mock staff:", mockResult);
+        return mockResult;
+      }
     } catch (error) {
-      return rejectWithValue(error.response?.data || "Failed to create staff");
+      console.error("Error details:", error);
+      return rejectWithValue(
+        error.response?.data?.detail ||
+          error.response?.data ||
+          "Failed to create staff"
+      );
     }
   }
 );
@@ -29,7 +58,6 @@ const employeesSlice = createSlice({
   initialState,
   reducers: {
     addStaff: (state, action) => {
-      // Explicitly convert IDs to numbers and find max
       const maxId = Math.max(
         ...state.staffMembers.map((staff) => Number(staff.id)),
         0

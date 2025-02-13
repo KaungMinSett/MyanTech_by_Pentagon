@@ -15,8 +15,8 @@ const CreateNewStaff = ({ onClose }) => {
     username: "",
     email: "",
     password: "",
-    role: "",
-    department: "",
+    role: null,
+    department: null,
     status: "Available",
     joinDate: new Date().toISOString().split("T")[0],
   });
@@ -25,8 +25,9 @@ const CreateNewStaff = ({ onClose }) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
-      ...(name === "role" && { department: "" }),
+      [name]:
+        name === "role" || name === "department" ? parseInt(value, 10) : value,
+      ...(name === "role" && { department: null }),
     }));
   };
 
@@ -67,7 +68,7 @@ const CreateNewStaff = ({ onClose }) => {
         fullWidth
         label="Username"
         name="username"
-        value={formData.name}
+        value={formData.username}
         onChange={handleChange}
         required
         error={!!error && !formData.name}
@@ -97,13 +98,13 @@ const CreateNewStaff = ({ onClose }) => {
         fullWidth
         label="Role"
         name="role"
-        value={formData.role}
+        value={formData.role || ""}
         onChange={handleChange}
         required
         error={!!error && !formData.role}
       >
         {roles.map((role) => (
-          <MenuItem key={role.value} value={role.value}>
+          <MenuItem key={role.id} value={role.id}>
             {role.label}
           </MenuItem>
         ))}
@@ -114,14 +115,14 @@ const CreateNewStaff = ({ onClose }) => {
         fullWidth
         label="Department"
         name="department"
-        value={formData.department}
+        value={formData.department || ""}
         onChange={handleChange}
         required
         disabled={!formData.role}
         error={!!error && !formData.department}
       >
         {filteredDepartments.map((dept) => (
-          <MenuItem key={dept.value} value={dept.value}>
+          <MenuItem key={dept.id} value={dept.id}>
             {dept.label}
           </MenuItem>
         ))}
