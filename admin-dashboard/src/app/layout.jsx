@@ -29,6 +29,8 @@ import ConfirmProducts from "./warehouse/confirm-products";
 import ProductForm from "./warehouse/inventory-management";
 import ProductList from "./sales/products";
 import Error404 from "@/components/error/Error404";
+import FinanceList from "./finance/page";
+import FinanceDetail from "../components/finance/finance-detail";
 
 function Layout() {
   const location = useLocation();
@@ -101,13 +103,17 @@ function Layout() {
               }
             />
             <Route
-              path="/finance"
+              path="/finance/*"
               element={
                 <ProtectedRoute>
-                  <div>Finance Page</div>
+                  <Routes>
+                    <Route index element={<FinanceList />} />
+                    <Route path=":id" element={<FinanceDetail />} />
+                  </Routes>
                 </ProtectedRoute>
               }
             />
+
             <Route
               path="/settings"
               element={
