@@ -90,14 +90,14 @@ export const initialStaffMembers = [
 ];
 
 export const departments = [
-  { value: "Admin", label: "Admin" },
-  { value: "Sales", label: "Sales" },
-  { value: "Finance", label: "Finance" },
-  { value: "Warehouse", label: "Warehouse" },
-  { value: "HR", label: "HR" },
+  { id: 1, label: "Admin" },
+  { id: 2, label: "Sales" },
+  { id: 3, label: "Warehouse" },
+  { id: 4, label: "Finance" },
+  { id: 5, label: "HR" },
 ];
 
 export const roles = [
-  { value: "Staff", label: "Staff" },
-  { value: "Manager", label: "Manager" },
+  { id: 1, label: "Manager" },
+  { id: 2, label: "Staff" },
 ];
