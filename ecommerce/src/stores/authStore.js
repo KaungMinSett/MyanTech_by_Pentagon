@@ -17,6 +17,7 @@ export const useAuthStore = defineStore('auth', {
         this.saveToken(res.data.refresh, res.data.access);
         this.isActive = true;
       });
+      await this.getUser()
     },
 
     async signup(username, email, password) {

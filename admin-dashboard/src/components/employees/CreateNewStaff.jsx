@@ -12,7 +12,7 @@ const CreateNewStaff = ({ onClose }) => {
   const [error, setError] = useState(null);
 
   const [formData, setFormData] = useState({
-    name: "",
+    username: "",
     email: "",
     password: "",
     role: "",
@@ -37,7 +37,7 @@ const CreateNewStaff = ({ onClose }) => {
 
     try {
       if (
-        !formData.name ||
+        !formData.username ||
         !formData.email ||
         !formData.password ||
         !formData.role ||
@@ -66,8 +66,8 @@ const CreateNewStaff = ({ onClose }) => {
 
       <TextField
         fullWidth
-        label="Full Name"
-        name="name"
+        label="Username"
+        name="username"
         value={formData.name}
         onChange={handleChange}
         required

@@ -18,7 +18,6 @@ export const loginUser = createAsyncThunk(
           password,
         });
 
-        // Log the response to check the structure
         console.log("API Response:", response.data);
 
         // Validate response structure
@@ -28,18 +27,6 @@ export const loginUser = createAsyncThunk(
           !response.data.user
         ) {
           throw new Error("Invalid response format from server");
-        }
-
-        // Validate user object structure
-        const {
-          id,
-          username: userName,
-          name,
-          department,
-          role,
-        } = response.data.user;
-        if (!id || !userName || !name || !department || !role) {
-          throw new Error("Missing required user fields in response");
         }
 
         // Store tokens and user in localStorage
@@ -53,17 +40,33 @@ export const loginUser = createAsyncThunk(
         };
       } catch (apiError) {
         console.error("API Error:", apiError);
-        console.error("API Error Response:", apiError.response?.data);
+
+        // Log detailed error information
+        if (apiError.data) {
+          console.error("API Error Details:", apiError.data);
+        }
 
         // During development, fallback to mock data
         const mockResult = authenticateUser(username, password);
         if (!mockResult) {
           throw new Error("Invalid credentials");
         }
-        return mockResult;
+
+        // Store mock tokens and user in localStorage
+        localStorage.setItem("access_token", mockResult.access);
+        localStorage.setItem("refresh_token", mockResult.refresh);
+        localStorage.setItem("user", JSON.stringify(mockResult.user));
+
+        return {
+          user: mockResult.user,
+          token: mockResult.access,
+        };
       }
     } catch (error) {
-      return rejectWithValue(error.message);
+      // Handle both API and mock errors
+      const errorMessage =
+        error.data?.detail || error.message || "Login failed";
+      return rejectWithValue(errorMessage);
     }
   }
 );

@@ -29,7 +29,8 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response.status === 401 && !originalRequest._retry) {
+    // Check if error.response exists before accessing status
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
@@ -43,7 +44,6 @@ axiosInstance.interceptors.response.use(
 
         return axiosInstance(originalRequest);
       } catch (refreshError) {
-        // If refresh fails, logout user
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
         localStorage.removeItem("user");
@@ -52,7 +52,12 @@ axiosInstance.interceptors.response.use(
       }
     }
 
-    return Promise.reject(error);
+    // Return a structured error object
+    return Promise.reject({
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message || "Network error occurred",
+    });
   }
 );
 

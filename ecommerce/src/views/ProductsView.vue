@@ -67,4 +67,13 @@
     </div>
 </template>
 
-<script setup></script>
+<script setup>
+
+import { onMounted } from 'vue';
+import { useAppStore } from '../stores/appStore';
+
+const appStore = useAppStore()
+onMounted( async () => {
+    await appStore.getProudcts()
+})
+</script>;
