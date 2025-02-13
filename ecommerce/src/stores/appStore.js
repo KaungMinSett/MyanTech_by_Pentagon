@@ -11,8 +11,9 @@ export const useAppStore = defineStore('app', {
         try {
             await handleAsync(
                 async () => {
-                    const res = await axiosInstance.get('shop/api/productlist/')
-                    console.log(res.data)
+                    const res = await axiosInstance.get('api/shop/productlist/')
+                    this.products = res.data;
+                    console.log(this.products)
                 }
             )
         } catch (error) {
