@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { addOrder } from "@/redux/features/orders/ordersSlice";
 import {
   addOrder,
   setDateFilter,
@@ -221,8 +220,8 @@ export function OrdersPage() {
                   {order.order_type}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-500 max-w-[150px] break-words">
-                 {order.employee}
-                </td> 
+                  {order.employee}
+                </td>
               </tr>
             ))}
           </tbody>

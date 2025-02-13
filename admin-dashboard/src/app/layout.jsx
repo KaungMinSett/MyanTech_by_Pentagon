@@ -56,19 +56,19 @@ function Layout() {
 
             {/* Sales Routes */}
             <Route
-            path="/sales/*"
-            element={
-              <ProtectedRoute>
-                <Routes>
-                  <Route index element={<Navigate to="orders" replace />} />
-                  <Route path="orders" element={<OrdersPage />} />
-                  <Route path="orders/:id" element={<OrderDetailPage />} />
-                  <Route path="history" element={<OrderHistoryPage />} />
-                  <Route path="products" element={<ProductList/>} />
-                </Routes>
-              </ProtectedRoute>
-            }
-          />
+              path="/sales/*"
+              element={
+                <ProtectedRoute>
+                  <Routes>
+                    <Route index element={<Navigate to="orders" replace />} />
+                    <Route path="orders" element={<OrdersPage />} />
+                    <Route path="orders/:id" element={<OrderDetailPage />} />
+                    <Route path="history" element={<OrderHistoryPage />} />
+                    <Route path="products" element={<ProductList />} />
+                  </Routes>
+                </ProtectedRoute>
+              }
+            />
 
             {/* Warehouse Routes */}
             <Route
@@ -82,14 +82,11 @@ function Layout() {
                       path="confirm-products"
                       element={<ConfirmProducts />}
                     />
-                    <Route
-                    path="/warehouse/update"
-                    element={
-                      <ProtectedRoute>
-                        <ProductForm/>
-                      </ProtectedRoute>
-                    }
-                  />
+                    <Route path="update" element={<ProductForm />} />
+                  </Routes>
+                </ProtectedRoute>
+              }
+            />
 
             {/* Other Protected Routes */}
             <Route
