@@ -14,7 +14,6 @@ import {
   addStaff,
   updateStaff,
   deleteStaff,
-  setSelectedStaff,
   setFilter,
   setSearchQuery,
 } from "@/redux/features/employees/employeesSlice";
@@ -32,18 +31,20 @@ export default function StaffList() {
 
   const handleDelete = (id) => {
     dispatch(deleteStaff(id));
+    handleMenuClose();
   };
 
   const handleEdit = (member) => {
-    dispatch(setSelectedStaff(member));
+    setSelectedMember(member);
     setEditModalOpen(true);
+    handleMenuClose();
   };
 
   const handleUpdate = (updatedStaff) => {
     dispatch(updateStaff(updatedStaff));
     setEditModalOpen(false);
+    setSelectedMember(null);
   };
-  
 
   const handleAddStaff = (newStaff) => {
     dispatch(addStaff(newStaff));
@@ -58,7 +59,6 @@ export default function StaffList() {
 
   const handleMenuClose = useCallback(() => {
     setAnchorEl(null);
-    setSelectedMember(null);
   }, []);
 
   const handleEditClick = () => {
@@ -218,7 +218,6 @@ export default function StaffList() {
         MenuListProps={{
           "aria-labelledby": "employee-actions-button",
           autoFocus: false,
-          disableAutoFocusItem: true,
         }}
       >
         <MenuItem onClick={handleEditClick}>Edit</MenuItem>
@@ -237,8 +236,11 @@ export default function StaffList() {
 
       <Modal
         open={editModalOpen}
-        onOpenChange={setEditModalOpen}
-        title="Edit Staff"
+        onOpenChange={(open) => {
+          setEditModalOpen(open);
+          if (!open) setSelectedMember(null);
+        }}
+        title="Edit Staff Member"
       >
         {selectedMember && (
           <EditStaff

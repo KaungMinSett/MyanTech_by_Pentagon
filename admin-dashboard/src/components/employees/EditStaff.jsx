@@ -1,25 +1,33 @@
 import { useState, useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
 import { departments, roles } from "@/mocks/employees/staff-data";
 import { updateStaff } from "@/redux/features/employees/employeesSlice";
 
-export default function EditStaff({ onClose }) {
+export default function EditStaff({ onClose, staffMember, onUpdate }) {
   const dispatch = useDispatch();
-  const selectedStaff = useSelector((state) => state.employees.selectedStaff);
-  const [formData, setFormData] = useState(selectedStaff || {});
+  const [formData, setFormData] = useState({
+    id: "",
+    name: "",
+    email: "",
+    status: "",
+    department: "",
+    role: "",
+    joinDate: "",
+  });
 
   useEffect(() => {
-    if (selectedStaff) {
-      setFormData(selectedStaff);
+    if (staffMember) {
+      setFormData({ ...staffMember });
     }
-  }, [selectedStaff]);
+  }, [staffMember]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     dispatch(updateStaff(formData));
+    onUpdate(formData);
     onClose();
   };
 
