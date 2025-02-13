@@ -28,6 +28,7 @@ import StaffList from "./employees/page";
 import ConfirmProducts from "./warehouse/confirm-products";
 import ProductForm from "./warehouse/inventory-management";
 import ProductList from "./sales/products";
+import Error404 from "@/components/error/Error404";
 
 function Layout() {
   const location = useLocation();
@@ -115,6 +116,9 @@ function Layout() {
                 </ProtectedRoute>
               }
             />
+
+            {/* 404 Route */}
+            <Route path="*" element={<Error404 />} />
           </Routes>
         </div>
       </main>

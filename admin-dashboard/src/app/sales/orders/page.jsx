@@ -27,11 +27,7 @@ export function OrdersPage() {
 
   const handleDateFilterChange = (startDate, endDate) => {
     dispatch(setDateFilter({ startDate, endDate }));
-  };
-
-  const handleSearch = (e) => {
-    dispatch(setSearchQuery(e.target.value));
-  };
+  }
 
   return (
     <div className="space-y-6">
