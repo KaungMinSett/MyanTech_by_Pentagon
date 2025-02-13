@@ -6,24 +6,6 @@ import Button from "@mui/material/Button";
 import { departments, roles } from "@/mocks/employees/staff-data";
 import { updateStaff } from "@/redux/features/employees/employeesSlice";
 
-<<<<<<< HEAD
-
-export default function EditStaff({ onClose, staffMember, onUpdate }) {
-  const [formData, setFormData] = useState({
-    id: '',
-    name: '',
-    email: '',
-    status: '',
-    department: '',
-    role: '',
-    joinDate: ''
-
-  });
-
-  useEffect(() => {
-    if (staffMember) {
-        setFormData({ ...staffMember });
-=======
 export default function EditStaff({ onClose }) {
   const dispatch = useDispatch();
   const selectedStaff = useSelector((state) => state.employees.selectedStaff);
@@ -32,7 +14,6 @@ export default function EditStaff({ onClose }) {
   useEffect(() => {
     if (selectedStaff) {
       setFormData(selectedStaff);
->>>>>>> 5b8cfa57cc81bfa8bfea7fd734df0be81ad3587f
     }
   }, [selectedStaff]);
 

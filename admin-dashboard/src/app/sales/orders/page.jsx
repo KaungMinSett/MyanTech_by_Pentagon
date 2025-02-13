@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { addOrder } from "@/redux/features/orders/ordersSlice";
 import {
-  addOrder,
   setDateFilter,
   selectFilteredOrders,
   setSearchQuery,
@@ -28,10 +27,6 @@ export function OrdersPage() {
 
   const handleDateFilterChange = (startDate, endDate) => {
     dispatch(setDateFilter({ startDate, endDate }));
-  };
-
-  const handleSearch = (e) => {
-    dispatch(setSearchQuery(e.target.value));
   };
 
   return (

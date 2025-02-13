@@ -83,13 +83,17 @@ function Layout() {
                       element={<ConfirmProducts />}
                     />
                     <Route
-                    path="/warehouse/update"
+                    path="update"
                     element={
                       <ProtectedRoute>
                         <ProductForm/>
                       </ProtectedRoute>
                     }
-                  />
+                    />
+                  </Routes>
+                </ProtectedRoute>
+              }
+            />
 
             {/* Other Protected Routes */}
             <Route
