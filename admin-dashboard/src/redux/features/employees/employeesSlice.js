@@ -17,7 +17,7 @@ export const fetchEmployees = createAsyncThunk(
           role: employee.role,
           department: employee.department,
           status: employee.status || "Available",
-          joinDate: employee.joinDate,
+          joinDate: new Date(employee.created_at).toISOString().split("T")[0],
         }));
 
         return transformedData;
