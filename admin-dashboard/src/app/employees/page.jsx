@@ -26,12 +26,21 @@ export default function StaffList() {
 
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedMember, setSelectedMember] = useState(null);
 
-  const handleDelete = (id) => {
+  const handleDeleteClick = (id) => {
+    setDeleteModalOpen(true);
     dispatch(deleteStaff(id));
     handleMenuClose();
+  };
+
+  const confirmDelete = () => {
+    if (selectedMember) {
+      dispatch(deleteStaff(selectedMember.id));
+    }
+    setDeleteModalOpen(false);
   };
 
   const handleEdit = (member) => {
@@ -66,10 +75,6 @@ export default function StaffList() {
     handleMenuClose();
   };
 
-  const handleDeleteClick = () => {
-    handleDelete(selectedMember.id);
-    handleMenuClose();
-  };
 
   const filteredStaff =
     staffMembers?.filter(
@@ -231,7 +236,7 @@ export default function StaffList() {
         onOpenChange={setAddModalOpen}
         title="Add New Staff"
       >
-        <CreateNewStaff onAddStaff={handleAddStaff} />
+        <CreateNewStaff onAddStaff={handleAddStaff} onClose={()=>setAddModalOpen(false)}/>
       </Modal>
 
       <Modal
@@ -249,6 +254,28 @@ export default function StaffList() {
             onClose={() => setEditModalOpen(false)}
           />
         )}
+      </Modal>
+
+      <Modal
+        open={isDeleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        title="Confirm Deletion"
+      >
+        <p>Are you sure you want to delete {selectedMember?.name}?</p>
+        <div className="flex justify-end gap-2 mt-4">
+          <button
+            onClick={() => setDeleteModalOpen(false)}
+            className="border px-4 py-2 rounded"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={confirmDelete}
+            className="bg-red-600 text-white px-4 py-2 rounded"
+          >
+            Delete
+          </button>
+        </div>
       </Modal>
     </div>
   );
