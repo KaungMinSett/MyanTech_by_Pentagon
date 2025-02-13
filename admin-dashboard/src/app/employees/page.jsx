@@ -13,7 +13,7 @@ import EditStaff from "@/components/employees/EditStaff";
 import {
   addStaff,
   updateStaff,
-  deleteStaff,
+  deleteStaffAsync,
   setFilter,
   setSearchQuery,
   fetchEmployees,
@@ -38,7 +38,7 @@ export default function StaffList() {
 
   const handleDeleteClick = async (id) => {
     try {
-      await dispatch(deleteStaff(id)).unwrap();
+      await dispatch(deleteStaffAsync(id)).unwrap();
       toast.success("Employee deleted successfully!");
       handleMenuClose();
     } catch (err) {
@@ -48,7 +48,7 @@ export default function StaffList() {
 
   const confirmDelete = () => {
     if (selectedMember) {
-      dispatch(deleteStaff(selectedMember.id));
+      dispatch(deleteStaffAsync(selectedMember.id));
     }
     setDeleteModalOpen(false);
   };
