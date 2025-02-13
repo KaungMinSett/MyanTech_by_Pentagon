@@ -1,4 +1,4 @@
-import { useState } from 'react';
+
 import { useNavigate } from 'react-router-dom';
 import { deliveredOrders } from '@/mocks/sales/order-history';
 
@@ -11,13 +11,10 @@ export function OrderHistoryPage() {
         <h2 className="text-2xl font-bold mb-4">Order History</h2>
       </div>
 
-      <div className="rounded-md border overflow-y-auto overflow-x-hidden max-h-[calc(100vh-150px)]">
+      <div className="rounded-md border overflow-y-auto overflow-x-hidden max-h-[calc(100vh-180px)]">
         <table className="w-full divide-y divide-gray-200 table-fixed">
           <thead className="bg-gray-50 sticky top-0">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                <input type="checkbox" className="h-4 w-4 rounded border-gray-300" />
-              </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Order ID
               </th>
@@ -48,9 +45,7 @@ export function OrderHistoryPage() {
                 className="hover:bg-gray-50 cursor-pointer"
                 onClick={() => navigate(`/sales/orders/${order.id.replace('#', '')}`)}
               >
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <input type="checkbox" className="h-4 w-4 rounded border-gray-300" />
-                </td>
+                
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {order.id}
                 </td>
