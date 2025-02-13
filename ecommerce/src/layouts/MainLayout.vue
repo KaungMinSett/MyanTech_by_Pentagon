@@ -6,7 +6,7 @@
             <!-- Navbar -->
             <Navbar />
             <!-- Page content here -->
-            <div class="mt-16">
+            <div class="mt-16 xl:mt-18">
                 <slot></slot>
             </div>
 

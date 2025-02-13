@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @plugin "daisyui" {
-  themes: nord --default, dracula --prefersdark;
+  themes: caramellatte --default, dracula --prefersdark;
 }
 
 /* Hide scrollbar but allow overflow */
