@@ -131,6 +131,19 @@ class OrderLogsSerializer(serializers.ModelSerializer):
         fields= '__all__'
 
 class ProductSerializer(serializers.ModelSerializer):
+    
+    details = serializers.SerializerMethodField()
+    
     class Meta:
         model= Product
         fields = '__all__'
+    
+    def get_details(self, obj):
+        # Get the related InventoryList object for the product
+        inventory_list = InventoryList.objects.filter(product=obj).first()
+        if inventory_list:
+            # Get the related Price object for the InventoryList
+            price = Price.objects.filter(product=inventory_list, is_published=True).first()
+            if price:
+                return PriceSerializer(price).data
+        return None
