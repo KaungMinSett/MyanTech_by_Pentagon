@@ -13,11 +13,17 @@ const employeesSlice = createSlice({
   initialState,
   reducers: {
     addStaff: (state, action) => {
+      // Explicitly convert IDs to numbers and find max
+      const maxId = Math.max(
+        ...state.staffMembers.map((staff) => Number(staff.id)),
+        0
+      );
+
       const newStaff = {
-        id: state.staffMembers.length + 1,
+        ...action.payload,
+        id: maxId + 1,
         status: "Available",
         joinDate: new Date().toISOString().split("T")[0],
-        ...action.payload,
       };
       state.staffMembers.push(newStaff);
     },

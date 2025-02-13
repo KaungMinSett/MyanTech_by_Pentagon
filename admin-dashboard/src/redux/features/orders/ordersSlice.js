@@ -90,11 +90,22 @@ export const selectFilteredOrders = createSelector(
     return orders.filter((order) => {
       const matchesSearch =
         !searchQuery ||
-        order.customer.name.toLowerCase().includes(searchQuery.toLowerCase());
+        order.customer.toLowerCase().includes(searchQuery.toLowerCase());
+
+      // Parse the dates
+      const orderDate = new Date(order.date);
+      const startDate = dateFilter.startDate
+        ? new Date(dateFilter.startDate)
+        : null;
+      const endDate = dateFilter.endDate ? new Date(dateFilter.endDate) : null;
+
+      // Check date range
       const matchesDate =
-        !dateFilter.startDate ||
-        (new Date(order.created_at) >= new Date(dateFilter.startDate) &&
-          new Date(order.created_at) <= new Date(dateFilter.endDate));
+        !startDate ||
+        !endDate ||
+        (orderDate >= startDate &&
+          orderDate <= new Date(endDate.setHours(23, 59, 59)));
+
       return matchesSearch && matchesDate;
     });
   }

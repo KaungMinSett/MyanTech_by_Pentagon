@@ -5,16 +5,28 @@ export function Breadcrumb() {
   const location = useLocation();
   const pathSegments = location.pathname.split("/").filter(Boolean);
 
-  // Skip parent route names (sales, warehouse) and capitalize others
   const getDisplaySegments = () => {
     return pathSegments
       .map((segment, index) => {
-        // Skip 'sales' and 'warehouse' parent routes
+        // Skip parent routes
         if (segment === "sales" || segment === "warehouse") {
           return null;
         }
 
-        // Capitalize and format segment name
+        const specialCases = {
+          "in-out": "Inbound/Outbound",
+          history: "Order History",
+          update: "Update Inventory",
+        };
+
+        if (specialCases[segment]) {
+          return {
+            name: specialCases[segment],
+            path: "/" + pathSegments.slice(0, index + 1).join("/"),
+          };
+        }
+
+        // Default formatting for other segments
         const formattedName = segment
           .split("-")
           .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -25,12 +37,12 @@ export function Breadcrumb() {
           path: "/" + pathSegments.slice(0, index + 1).join("/"),
         };
       })
-      .filter(Boolean); // Remove null values
+      .filter(Boolean);
   };
 
-  const displaySegments = getDisplaySegments();
-
   if (location.pathname === "/") return null;
+
+  const displaySegments = getDisplaySegments();
 
   return (
     <nav className="mb-8">

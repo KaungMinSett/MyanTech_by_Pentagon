@@ -26,88 +26,93 @@ export function OrdersPage() {
 
   const handleDateFilterChange = (startDate, endDate) => {
     dispatch(setDateFilter({ startDate, endDate }));
-  }
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Orders</h2>
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <Button
-              variant="outlined"
-              size="small"
-              color="gray"
-              onClick={() => setShowDatePicker(!showDatePicker)}
-              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm"
-            >
-              <Calendar className="h-4 w-4 text-gray-500" />
-              <span className="text-gray-600">
-                {dateFilter.startDate && dateFilter.endDate
-                  ? `${new Date(
-                      dateFilter.startDate
-                    ).toLocaleDateString()} - ${new Date(
-                      dateFilter.endDate
-                    ).toLocaleDateString()}`
-                  : "Select date range"}
-              </span>
-            </Button>
-            {showDatePicker && (
-              <div className="absolute top-full left-0 mt-2 bg-white border rounded-lg shadow-lg z-10 p-4 w-72">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">
-                      Start
-                    </label>
-                    <input
-                      type="date"
-                      value={dateFilter.startDate}
-                      onChange={(e) =>
-                        handleDateFilterChange(
-                          e.target.value,
-                          dateFilter.endDate
-                        )
-                      }
-                      className="w-full px-2 py-1 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-500 mb-1">
-                      End
-                    </label>
-                    <input
-                      type="date"
-                      value={dateFilter.endDate}
-                      onChange={(e) =>
-                        handleDateFilterChange(
-                          dateFilter.startDate,
-                          e.target.value
-                        )
-                      }
-                      className="w-full px-2 py-1 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    />
-                  </div>
+        <div className="relative">
+          <Button
+            variant="outlined"
+            size="small"
+            sx={{
+              color: "text.secondary",
+              borderColor: "rgba(0, 0, 0, 0.23)",
+              "&:hover": {
+                borderColor: "text.primary",
+                color: "text.primary",
+                backgroundColor: "transparent",
+              },
+            }}
+            onClick={() => setShowDatePicker(!showDatePicker)}
+            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm"
+          >
+            <Calendar className="h-4 w-4 text-gray-500" />
+            <span className="text-gray-600">
+              {dateFilter.startDate && dateFilter.endDate
+                ? `${new Date(
+                    dateFilter.startDate
+                  ).toLocaleDateString()} - ${new Date(
+                    dateFilter.endDate
+                  ).toLocaleDateString()}`
+                : "Select date range"}
+            </span>
+          </Button>
+          {showDatePicker && (
+            <div className="absolute top-full left-0 mt-2 bg-white border rounded-lg shadow-lg z-10 p-4 w-72">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                    Start
+                  </label>
+                  <input
+                    type="date"
+                    value={dateFilter.startDate}
+                    onChange={(e) =>
+                      handleDateFilterChange(e.target.value, dateFilter.endDate)
+                    }
+                    className="w-full px-2 py-1 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 mb-1">
+                    End
+                  </label>
+                  <input
+                    type="date"
+                    value={dateFilter.endDate}
+                    onChange={(e) =>
+                      handleDateFilterChange(
+                        dateFilter.startDate,
+                        e.target.value
+                      )
+                    }
+                    className="w-full px-2 py-1 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
                 </div>
               </div>
-            )}
-          </div>
-          <div className="flex gap-4">
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="px-4 py-2 text-sm bg-[#0066FF] text-white rounded-md hover:bg-[#0052CC] transition-colors"
-            >
-              Create Order
-            </button>
+            </div>
+          )}
+        </div>
+        <div className="flex gap-4">
+          <Button
+            onClick={() => setShowCreateModal(true)}
+            variant="outlined"
+            size="small"
+            color="primary"
+            className="px-4 py-2 text-sm"
+          >
+            Create Order
+          </Button>
 
-            <Modal
-              open={showCreateModal}
-              onOpenChange={setShowCreateModal}
-              title="Create New Order"
-              trapFocus={false}
-            >
-              <CreateOrderForm onSubmit={handleCreateOrder} />
-            </Modal>
-          </div>
+          <Modal
+            open={showCreateModal}
+            onOpenChange={setShowCreateModal}
+            title="Create New Order"
+            trapFocus={false}
+          >
+            <CreateOrderForm onSubmit={handleCreateOrder} />
+          </Modal>
         </div>
       </div>
 

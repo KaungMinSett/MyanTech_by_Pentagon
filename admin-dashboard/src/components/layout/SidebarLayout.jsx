@@ -44,7 +44,7 @@ const getAuthorizedNavigation = (role, department) => {
         children: [
           { name: "Inventory List", href: "/warehouse/inventory" },
           { name: "Inbound/Outbound", href: "/warehouse/in-out" },
-          { name: "Inventory Management", href: "/warehouse/update" },
+          { name: "Update Inventory", href: "/warehouse/update" },
           { name: "Confirm Products", href: "/warehouse/confirm-products" },
         ],
       },
@@ -52,7 +52,6 @@ const getAuthorizedNavigation = (role, department) => {
     ];
   }
 
-  // HR can see everything except finance, sales, and warehouse
   if (department === "HR") {
     return [
       ...baseNavigation,
@@ -95,11 +94,10 @@ const getAuthorizedNavigation = (role, department) => {
       children: [
         { name: "Inventory List", href: "/warehouse/inventory" },
         { name: "Inbound/Outbound", href: "/warehouse/in-out" },
-        { name: "Inventory Management", href: "/warehouse/update" },
+        { name: "Update Inventory", href: "/warehouse/update" },
       ],
     };
 
-    // Add confirm products for warehouse manager only
     if (role === "Manager") {
       warehouseNav.children.push({
         name: "Confirm Products",
@@ -146,13 +144,11 @@ export default function SidebarLayout() {
               <div key={item.name}>
                 {item.children ? (
                   <>
-                    <div
-                      className={cn(
-                        "flex items-center px-4 py-3 text-base font-medium text-gray-600"
-                      )}
-                    >
+                    <div className="flex items-center px-4 py-3 text-base font-medium text-gray-600">
                       <item.icon className="h-6 w-6 text-gray-400" />
-                      <span className="ml-4">{item.name}</span>
+                      <span className="ml-4 hover:cursor-pointer">
+                        {item.name}
+                      </span>
                     </div>
                     <div className="space-y-1">
                       {item.children.map((child) => (
