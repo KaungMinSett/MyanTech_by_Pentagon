@@ -1,5 +1,5 @@
 from django.db import models
-from shop.models import Customer, Address
+
 from hr.models import Employee
 from warehouse.models import InventoryList
 from django.db.models import Sum, F, Value

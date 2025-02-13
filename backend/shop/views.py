@@ -1,5 +1,5 @@
 from rest_framework_simplejwt.views import TokenObtainPairView
-from .models import Customer
+
 from django.contrib.auth import get_user_model
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -7,6 +7,9 @@ from rest_framework import viewsets, status
 from sales.models import Price,Order
 from warehouse.models import Product
 from sales.serializers import CustomerSerializer,ProductSerializer,OrderSerializer,OrderItemSerializer,InvoiceSerializer
+from django.db import transaction
+from .models import Customer, ReturnRequestItem, ReturnRequest
+from .serializers import ReturnRequestSerializer, ReturnRequestItemSerializer
 
 User = get_user_model()
 
@@ -35,7 +38,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Ensure customers only see their own orders."""
-        return Order.objects.filter(customer_id=self.request.user.customer_id)
+        return Order.objects.filter(id=self.request.user.id)
 
     @action(detail=True, methods=['get'])
     def order_summary(self, request, pk=None):
@@ -52,3 +55,29 @@ class OrderViewSet(viewsets.ModelViewSet):
             return Response({"error": "Invoice is only available for approved orders."}, status=400)
         serializer = InvoiceSerializer(order)
         return Response(serializer.data)
+
+class ReturnRequestViewSet(viewsets.ModelViewSet):
+    queryset = ReturnRequest.objects.all()
+    serializer_class = ReturnRequestSerializer
+
+    @transaction.atomic
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class ReturnRequestItemViewSet(viewsets.ModelViewSet):
+    queryset = ReturnRequestItem.objects.all()
+    serializer_class = ReturnRequestItemSerializer
+
+    def get_queryset(self):
+        return self.queryset.filter(
+            return_request_id=self.kwargs['return_request_pk']
+        )
+
+    def perform_create(self, serializer):
+        serializer.save(
+            return_request_id=self.kwargs['return_request_pk']
+        )

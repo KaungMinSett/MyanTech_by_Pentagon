@@ -25,11 +25,11 @@ urlpatterns = [
     path('warehouse/', include(('warehouse.urls', 'warehouse'), namespace='warehouse')),  # Include Warehouse app URLs
     path('hr/', include('hr.urls')),
     path('sales/', include('sales.urls')),
-    path('shop/', include('shop.urls')),
+    path('api/', include('shop.urls')),
     path('delivery/', include('delivery.urls')),
     path('auth/', include('djoser.urls')),  # General Djoser routes
     path('auth/', include('core.urls')),  
     path('logistic/', include('delivery.urls')),  
-    path('api/', include('finance.urls')),
+    path('finance/', include('finance.urls')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
