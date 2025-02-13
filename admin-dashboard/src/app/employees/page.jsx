@@ -11,129 +11,8 @@ import {
 import { Modal } from "../../components/modal/modal";
 import CreateNewStaff from "../../components/employees/CreateNewStaff";
 import EditStaff from "../../components/employees/EditStaff";
+import { initialStaffMembers } from "../../mocks/employees/staff-list";
 
-const initialStaffMembers = [
-  {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    role: "Staff",
-    department: "Sales",
-    joinDate: "2023-05-15",
-    status: "Available",
-  },
-  {
-    name: "Jane Smith",
-    email: "jane.smith@example.com",
-    role: "Manager",
-    department: "Warehouse",
-    joinDate: "2021-08-22",
-    status: "Unavailable",
-  },
-  {
-    name: "Michael Johnson",
-    email: "michael.johnson@example.com",
-    role: "Staff",
-    department: "Finance",
-    joinDate: "2022-11-10",
-    status: "Available",
-  },
-  {
-    name: "Emily Brown",
-    email: "emily.brown@example.com",
-    role: "Manager",
-    department: "Sales",
-    joinDate: "2020-03-30",
-    status: "Unavailable",
-  },
-  {
-    name: "David Wilson",
-    email: "david.wilson@example.com",
-    role: "Staff",
-    department: "Warehouse",
-    joinDate: "2024-01-12",
-    status: "Available",
-  },
-  {
-    name: "Sarah Miller",
-    email: "sarah.miller@example.com",
-    role: "Staff",
-    department: "Finance",
-    joinDate: "2022-06-19",
-    status: "Unavailable",
-  },
-  {
-    name: "James Anderson",
-    email: "james.anderson@example.com",
-    role: "Manager",
-    department: "Sales",
-    joinDate: "2019-12-05",
-    status: "Available",
-  },
-  {
-    name: "Olivia Martinez",
-    email: "olivia.martinez@example.com",
-    role: "Staff",
-    department: "Warehouse",
-    joinDate: "2023-09-14",
-    status: "Unavailable",
-  },
-  {
-    name: "William Taylor",
-    email: "william.taylor@example.com",
-    role: "Staff",
-    department: "Sales",
-    joinDate: "2021-07-23",
-    status: "Available",
-  },
-  {
-    name: "Sophia White",
-    email: "sophia.white@example.com",
-    role: "Manager",
-    department: "Finance",
-    joinDate: "2020-11-02",
-    status: "Unavailable",
-  },
-  {
-    name: "Daniel Harris",
-    email: "daniel.harris@example.com",
-    role: "Staff",
-    department: "Warehouse",
-    joinDate: "2023-02-17",
-    status: "Available",
-  },
-  {
-    name: "Emma Clark",
-    email: "emma.clark@example.com",
-    role: "Manager",
-    department: "Sales",
-    joinDate: "2018-04-25",
-    status: "Unavailable",
-  },
-  {
-    name: "Matthew Lewis",
-    email: "matthew.lewis@example.com",
-    role: "Staff",
-    department: "Finance",
-    joinDate: "2024-01-05",
-    status: "Available",
-  },
-  {
-    name: "Ava Walker",
-    email: "ava.walker@example.com",
-    role: "Staff",
-    department: "Warehouse",
-    joinDate: "2022-09-30",
-    status: "Unavailable",
-  },
-  {
-    name: "Liam Hall",
-    email: "liam.hall@example.com",
-    role: "Manager",
-    department: "Finance",
-    joinDate: "2017-06-15",
-    status: "Available",
-  },
-];
 
 export default function StaffList() {
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -154,12 +33,13 @@ export default function StaffList() {
   };
 
   const handleUpdate = (updatedStaff) => {
-    setStaffMembers(
-      staffMembers.map((member) =>
-        member.id === updatedStaff.id ? updatedStaff : member
+    setStaffMembers((prevStaff) =>
+      prevStaff.map((member) =>
+        member.id === updatedStaff.id ? { ...updatedStaff } : member
       )
     );
   };
+  
 
   // ✅ Function to add new staff
   const handleAddStaff = (newStaff) => {
@@ -191,6 +71,7 @@ export default function StaffList() {
             open={addModalOpen}
             onOpenChange={setAddModalOpen}
             title="Add New Staff"
+             modal={false}
           >
             <CreateNewStaff onAddStaff={handleAddStaff} />
           </Modal>

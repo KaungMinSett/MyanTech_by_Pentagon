@@ -14,13 +14,15 @@ const CreateNewStaff = ({ onClose, onAddStaff }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
+    console.log(`Changing ${name} to ${value}`); // Debugging
+  
     setFormData((prev) => ({
       ...prev,
       [name]: value,
       ...(name === "role" && { department: "" }), // Reset department when role changes
     }));
   };
+  
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -30,7 +32,7 @@ const CreateNewStaff = ({ onClose, onAddStaff }) => {
   };
 
   return (
-    <div>
+    <div >
       <form onSubmit={handleSubmit}>
         <TextField
           fullWidth
@@ -66,6 +68,7 @@ const CreateNewStaff = ({ onClose, onAddStaff }) => {
           select
           fullWidth
           label="Role"
+          key={formData.role}
           name="role"
           value={formData.role}
           onChange={handleChange}

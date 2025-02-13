@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 
 export default function EditStaff({ onClose, staffMember, onUpdate }) {
   const [formData, setFormData] = useState({
-    id: 0,
+    id: '',
     name: '',
     email: '',
     status: '',
@@ -15,7 +15,7 @@ export default function EditStaff({ onClose, staffMember, onUpdate }) {
 
   useEffect(() => {
     if (staffMember) {
-      setFormData(staffMember);
+        setFormData({ ...staffMember });
     }
   }, [staffMember]);
 
@@ -79,7 +79,7 @@ export default function EditStaff({ onClose, staffMember, onUpdate }) {
               <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
               <input
                 type="text"
-                name="treatment"
+                name="department"
                 value={formData.department}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border rounded-md"
@@ -91,7 +91,7 @@ export default function EditStaff({ onClose, staffMember, onUpdate }) {
               <label className="block text-sm font-medium text-gray-700 mb-1">Shift</label>
               <input
                 type="text"
-                name="shift"
+                name="joinDate"
                 value={formData.joinDate}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border rounded-md"
