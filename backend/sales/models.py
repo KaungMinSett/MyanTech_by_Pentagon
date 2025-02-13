@@ -14,8 +14,15 @@ class Price(models.Model):
     product = models.OneToOneField(  # Changed from ForeignKey
         InventoryList,
         on_delete=models.CASCADE,
-        primary_key=True,  # Makes this a 1:1 relationship
+
         related_name='price_info'
+    )
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    is_published = models.BooleanField(default=False)
+    image = models.ImageField(
+        upload_to='product_images/',
+        blank=True,
+        null=True,
     )
 
     def get_available_stock(self):

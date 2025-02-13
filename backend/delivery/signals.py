@@ -10,7 +10,7 @@ def assign_deliveries_to_drivers(sender, instance, created, **kwargs):
     if instance.status == "Approved" and instance.warehouse_ready:
         print("Should Assign Deliveries")
         assign_deliveries_to_drivers_util()
-    return    
+    return      
 
 @receiver(post_save, sender=Delivery)
 def update_order_status_after_delivery(sender, instance, created, **kwargs):
@@ -27,12 +27,17 @@ def update_order_status_after_delivery(sender, instance, created, **kwargs):
                 instance.delivery_group.latitude = instance.order.address.latitude
                 instance.delivery_group.longitude = instance.order.address.longitude
                 instance.delivery_group.save()
+    elif instance.status == Delivery.FAILED:
+        print("created a new delivery record for this failure")
+        Delivery.objects.create(
+            order=instance.order
+        )
 
 @receiver(post_save, sender=DeliveryGroup)
 def set_deliveries_to_failed(sender, instance, created, **kwargs):
     if instance.status == DeliveryGroup.FAILED:
         print("Should set all deliveries to failed")
-        # Set all related deliveries without 'Complete' status to 'Failed'
+        # Set all related deliveries without 'Complete' status to 'Failed's
         Delivery.objects.filter(delivery_group=instance).exclude(status=Delivery.COMPLETE).update(status=Delivery.FAILED)
         
         # Recreate delivery records for failed deliveries
