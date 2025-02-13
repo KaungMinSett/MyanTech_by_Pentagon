@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
-import { addStaff } from "@/redux/features/employees/employeesSlice";
+import { createStaff } from "@/redux/features/employees/employeesSlice";
 import { departments, roles } from "@/mocks/employees/staff-data";
 
 const CreateNewStaff = ({ onClose }) => {
   const dispatch = useDispatch();
-  const [isLoading, setIsLoading] = useState(false);
+  const { loading, error: apiError } = useSelector((state) => state.employees);
   const [error, setError] = useState(null);
 
   const [formData, setFormData] = useState({
@@ -33,7 +33,6 @@ const CreateNewStaff = ({ onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    setIsLoading(true);
 
     try {
       if (
@@ -46,12 +45,12 @@ const CreateNewStaff = ({ onClose }) => {
         throw new Error("Please fill in all required fields");
       }
 
-      dispatch(addStaff(formData));
-      onClose();
+      const result = await dispatch(createStaff(formData)).unwrap();
+      if (result) {
+        onClose();
+      }
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
+      setError(err.message || "Failed to create staff member");
     }
   };
 
@@ -133,10 +132,10 @@ const CreateNewStaff = ({ onClose }) => {
         variant="contained"
         color="primary"
         fullWidth
-        disabled={isLoading}
+        disabled={loading}
         sx={{ mt: 2 }}
       >
-        {isLoading ? "Creating..." : "Create Member"}
+        {loading ? "Creating..." : "Create Member"}
       </Button>
     </form>
   );
