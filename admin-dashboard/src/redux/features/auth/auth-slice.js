@@ -10,11 +10,11 @@ const getCurrentUser = () => {
 
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
-  async ({ email, password }, { rejectWithValue }) => {
+  async ({ username, password }, { rejectWithValue }) => {
     try {
       try {
-        const response = await axiosInstance.post("/employees/login/", {
-          email,
+        const response = await axiosInstance.post("/auth/employees/login/", {
+          username,
           password,
         });
 
@@ -33,12 +33,12 @@ export const loginUser = createAsyncThunk(
         // Validate user object structure
         const {
           id,
-          email: userEmail,
+          username: userName,
           name,
           department,
           role,
         } = response.data.user;
-        if (!id || !userEmail || !name || !department || !role) {
+        if (!id || !userName || !name || !department || !role) {
           throw new Error("Missing required user fields in response");
         }
 
@@ -56,7 +56,7 @@ export const loginUser = createAsyncThunk(
         console.error("API Error Response:", apiError.response?.data);
 
         // During development, fallback to mock data
-        const mockResult = authenticateUser(email, password);
+        const mockResult = authenticateUser(username, password);
         if (!mockResult) {
           throw new Error("Invalid credentials");
         }
