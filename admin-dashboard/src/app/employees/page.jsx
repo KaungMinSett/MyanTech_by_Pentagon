@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Search, MoreVertical, Plus } from "lucide-react";
 import Button from "@mui/material/Button";
@@ -16,6 +16,7 @@ import {
   deleteStaff,
   setFilter,
   setSearchQuery,
+  fetchEmployees,
 } from "@/redux/features/employees/employeesSlice";
 import { toast } from "react-hot-toast";
 
@@ -30,6 +31,10 @@ export default function StaffList() {
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedMember, setSelectedMember] = useState(null);
+
+  useEffect(() => {
+    dispatch(fetchEmployees());
+  }, [dispatch]);
 
   const handleDeleteClick = async (id) => {
     try {
