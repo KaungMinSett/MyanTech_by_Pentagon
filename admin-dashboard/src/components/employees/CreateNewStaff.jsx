@@ -67,7 +67,7 @@ const CreateNewStaff = ({ onClose }) => {
         fullWidth
         label="Username"
         name="username"
-        value={formData.name}
+        value={formData.username}
         onChange={handleChange}
         required
         error={!!error && !formData.name}
