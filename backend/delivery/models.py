@@ -3,6 +3,7 @@ from warehouse.models import Warehouse
 from hr.models import Employee
 from sales.models import Order
 from django.core.exceptions import ValidationError
+from shop.models import ReturnRequest
 
 class DeliveryGroup(models.Model):
     """
@@ -104,3 +105,38 @@ class Delivery(models.Model):
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
+
+
+class ReturnDelivery(models.Model):
+    PENDING = "P"
+    ASSIGNED = "A"
+    COMPLETE = "C"
+    FAILED = "F"
+    STATUS_CHOICES = [
+        (PENDING, "Pending"),
+        (ASSIGNED, "Assigned"),
+        (COMPLETE, "Complete"),
+        (FAILED, "Failed"),
+    ]
+    
+   
+    return_request = models.OneToOneField(
+        ReturnRequest,
+        on_delete=models.CASCADE,
+        related_name='collection'
+    )
+    delivery_group = models.ForeignKey(DeliveryGroup, on_delete=models.SET_NULL, null=True, blank=True, related_name="returned")
+ 
+    
+   
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='PENDING'
+    )
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Return for {self.return_request}"
