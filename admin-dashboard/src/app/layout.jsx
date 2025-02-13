@@ -26,6 +26,8 @@ import { ProtectedRoute } from "@/components/auth/protected-route";
 import { Breadcrumb } from "@/components/navigation/Breadcrumb";
 import StaffList from "./employees/page";
 import ConfirmProducts from "./warehouse/confirm-products";
+import ProductForm from "./warehouse/inventory-management";
+import ProductList from "./sales/products";
 
 function Layout() {
   const location = useLocation();
@@ -54,19 +56,19 @@ function Layout() {
 
             {/* Sales Routes */}
             <Route
-              path="/sales/*"
-              element={
-                <ProtectedRoute>
-                  <Routes>
-                    <Route index element={<Navigate to="orders" replace />} />
-                    <Route path="orders" element={<OrdersPage />} />
-                    <Route path="orders/:id" element={<OrderDetailPage />} />
-                    <Route path="history" element={<OrderHistoryPage />} />
-                    <Route path="products" element={<div>Products Page</div>} />
-                  </Routes>
-                </ProtectedRoute>
-              }
-            />
+            path="/sales/*"
+            element={
+              <ProtectedRoute>
+                <Routes>
+                  <Route index element={<Navigate to="orders" replace />} />
+                  <Route path="orders" element={<OrdersPage />} />
+                  <Route path="orders/:id" element={<OrderDetailPage />} />
+                  <Route path="history" element={<OrderHistoryPage />} />
+                  <Route path="products" element={<ProductList/>} />
+                </Routes>
+              </ProtectedRoute>
+            }
+          />
 
             {/* Warehouse Routes */}
             <Route
@@ -80,11 +82,14 @@ function Layout() {
                       path="confirm-products"
                       element={<ConfirmProducts />}
                     />
-                    <Route path="update" element={<div>Update Page</div>} />
-                  </Routes>
-                </ProtectedRoute>
-              }
-            />
+                    <Route
+                    path="/warehouse/update"
+                    element={
+                      <ProtectedRoute>
+                        <ProductForm/>
+                      </ProtectedRoute>
+                    }
+                  />
 
             {/* Other Protected Routes */}
             <Route

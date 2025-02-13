@@ -11,13 +11,18 @@ from decimal import Decimal
 
 
 class Price(models.Model):
-    product = models.ForeignKey(InventoryList, on_delete=models.CASCADE)
+    product = models.OneToOneField(  # Changed from ForeignKey
+        InventoryList,
+        on_delete=models.CASCADE,
+
+        related_name='price_info'
+    )
     price = models.DecimalField(max_digits=10, decimal_places=2)
     is_published = models.BooleanField(default=False)
     image = models.ImageField(
-        upload_to='product_images/',  # Images stored in MEDIA_ROOT/
-        blank=True,  # Optional field
-        null=True,   # Allow NULL in database
+        upload_to='product_images/',
+        blank=True,
+        null=True,
     )
 
     def get_available_stock(self):

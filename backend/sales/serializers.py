@@ -28,31 +28,87 @@ class CustomerSerializer(serializers.ModelSerializer):
         return customer
 
 
+
+    
+
+
+
+
 class OrderItemSerializer(serializers.ModelSerializer):
-    product_name = serializers.CharField(source="product_id.product_id.product.name", read_only=True)
+    product = serializers.PrimaryKeyRelatedField(
+        queryset=Price.objects.all(),
+        help_text="Select product from available prices"
+    )
+    
     class Meta:
         model = OrderItem
-        fields = ['id','order','product_id', 'product_name', 'quantity', 'unit_price', 'total_price']
+        fields = ['id', 'product', 'quantity', 'unit_price']
+        extra_kwargs = {
+            'unit_price': {
+                'required': False,
+                'help_text': "Will auto-populate from product price if not provided"
+            }
+        }
 
+class OrderSerializer(serializers.ModelSerializer):
+    order_items = OrderItemSerializer(
+        many=True,
+        required=True,
+        help_text="At least one order item is required"
+    )
+
+    class Meta:
+        model = Order
+        fields = [
+            'id', 'customer', 'address', 'order_type', 
+            'status', 'order_items', 'created_at'
+        ]
+        read_only_fields = ['status', 'created_at']
+
+# class OrderSerializer(serializers.ModelSerializer):
+#     order_items = OrderItemSerializer(many=True)
+#     customer_id= serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())
+#     address = serializers.PrimaryKeyRelatedField(queryset=Address.objects.all())
+#     staff = serializers.PrimaryKeyRelatedField(queryset=Employee.objects.all())
+#     class Meta:
+#         model = Order
+#         fields = ['id', 'customer_id','address','staff', 'order_date', 'status', 'updated_at', 'order_items']
+
+#     def create(self, validated_data):
+#         order_items_data = validated_data.pop('order_items')
+
+#         order = Order.objects.create(status='Approved',
+#                                      order_type='phone', **validated_data)
+
+#         for item_data in order_items_data:
+#             OrderItem.objects.create(order=order, **item_data)
+
+#         return order
 
 class OrderSerializer(serializers.ModelSerializer):
     order_items = OrderItemSerializer(many=True)
-    customer_id= serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())
-    address = serializers.PrimaryKeyRelatedField(queryset=Address.objects.all())
-    staff = serializers.PrimaryKeyRelatedField(queryset=Employee.objects.all())
+    
     class Meta:
         model = Order
-        fields = ['id', 'customer_id','address','staff', 'order_date', 'status', 'updated_at', 'order_items']
+        fields = '__all__'
+        read_only_fields = ['total_price', 'reconciliation_status']
+
+    def validate_order_items(self, value):
+        if not value:
+            raise serializers.ValidationError("At least one order item is required")
+        return value
 
     def create(self, validated_data):
         order_items_data = validated_data.pop('order_items')
-
-        order = Order.objects.create(status='Approved',
-                                     order_type='phone', **validated_data)
-
+        order = Order.objects.create(**validated_data)
+        
         for item_data in order_items_data:
+            # Auto-populate unit_price from product price if not provided
+            if 'unit_price' not in item_data:
+                item_data['unit_price'] = item_data['product'].price
+                
             OrderItem.objects.create(order=order, **item_data)
-
+        
         return order
 
 class InvoiceSerializer(serializers.ModelSerializer):
