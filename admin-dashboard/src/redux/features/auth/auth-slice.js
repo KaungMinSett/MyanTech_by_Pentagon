@@ -2,49 +2,45 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { authenticateUser } from "@/mocks/auth/users";
 import axiosInstance from "@/api/axios";
 
-// Get user from localStorage
-const getCurrentUser = () => {
-  const userStr = localStorage.getItem("user");
-  return userStr ? JSON.parse(userStr) : null;
-};
+// Get user info after login
+export const fetchUserInfo = createAsyncThunk(
+  "auth/fetchUserInfo",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get("/auth/employees/me/");
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.message || "Failed to fetch user info");
+    }
+  }
+);
 
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
-  async ({ username, password }, { rejectWithValue }) => {
+  async ({ username, password }, { dispatch, rejectWithValue }) => {
     try {
       try {
-        const response = await axiosInstance.post("/employees/login/", {
+        const response = await axiosInstance.post("/auth/employees/login/", {
           username,
           password,
         });
 
-        console.log("API Response:", response.data);
-
-        // Validate response structure
-        if (
-          !response.data.access ||
-          !response.data.refresh ||
-          !response.data.user
-        ) {
+        if (!response.data.access || !response.data.refresh) {
           throw new Error("Invalid response format from server");
         }
 
-        // Store tokens and user in localStorage
+        // Store tokens
         localStorage.setItem("access_token", response.data.access);
         localStorage.setItem("refresh_token", response.data.refresh);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
+
+        // Fetch user info
+        await dispatch(fetchUserInfo());
 
         return {
-          user: response.data.user,
           token: response.data.access,
         };
       } catch (apiError) {
         console.error("API Error:", apiError);
-
-        // Log detailed error information
-        if (apiError.data) {
-          console.error("API Error Details:", apiError.data);
-        }
 
         // During development, fallback to mock data
         const mockResult = authenticateUser(username, password);
@@ -52,7 +48,6 @@ export const loginUser = createAsyncThunk(
           throw new Error("Invalid credentials");
         }
 
-        // Store mock tokens and user in localStorage
         localStorage.setItem("access_token", mockResult.access);
         localStorage.setItem("refresh_token", mockResult.refresh);
         localStorage.setItem("user", JSON.stringify(mockResult.user));
@@ -63,10 +58,7 @@ export const loginUser = createAsyncThunk(
         };
       }
     } catch (error) {
-      // Handle both API and mock errors
-      const errorMessage =
-        error.data?.detail || error.message || "Login failed";
-      return rejectWithValue(errorMessage);
+      return rejectWithValue(error.message || "Login failed");
     }
   }
 );
@@ -100,7 +92,6 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.isAuthenticated = true;
-        state.user = action.payload.user;
         state.token = action.payload.token;
         state.loading = false;
         state.error = null;
@@ -108,6 +99,10 @@ const authSlice = createSlice({
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(fetchUserInfo.fulfilled, (state, action) => {
+        state.user = action.payload;
+        localStorage.setItem("user", JSON.stringify(action.payload));
       });
   },
 });
