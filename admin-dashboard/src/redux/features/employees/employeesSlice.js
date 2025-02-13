@@ -9,10 +9,21 @@ export const fetchEmployees = createAsyncThunk(
       try {
         const response = await axiosInstance.get("/hr/employees/");
         console.log("API Response:", response.data);
-        return response.data;
+
+        const transformedData = response.data.map((employee) => ({
+          id: employee.id,
+          name: employee.user.username,
+          email: employee.user.email,
+          role: employee.role,
+          department: employee.department,
+          status: employee.status || "Available",
+          joinDate: employee.joinDate,
+        }));
+
+        return transformedData;
       } catch (apiError) {
         console.log("API Error, falling back to mock data:", apiError);
-        return initialStaffMembers; // Return mock data during development
+        return initialStaffMembers;
       }
     } catch (error) {
       console.error("Error details:", error);
