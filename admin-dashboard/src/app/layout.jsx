@@ -31,6 +31,7 @@ import ProductList from "./sales/products";
 import Error404 from "@/components/error/Error404";
 import FinanceList from "./finance/page";
 import FinanceDetail from "../components/finance/finance-detail";
+import SalesReports from "./reports/sale-report";
 
 function Layout() {
   const location = useLocation();
@@ -54,6 +55,14 @@ function Layout() {
                 <ProtectedRoute>
                   <DashboardPage />
                 </ProtectedRoute>
+              }
+            />
+                    <Route
+              path="/report"
+              element={
+          
+                 <SalesReports/>
+       
               }
             />
 
