@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: nord --default, dracula --prefersdark;
+}
+
+/* Hide scrollbar but allow overflow */
+html {
+  overflow: auto;
+  scrollbar-width: none; /* For Firefox */
+  -ms-overflow-style: none;  /* For Internet Explorer and Edge */
+}
+
+html::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Opera */
+}
+
+.drawer-side {
+  @apply z-50;
+}
+
+.interactive:hover {
+  @apply cursor-pointer transition-all ease-in-out duration-500 -translate-y-1; 
+}
