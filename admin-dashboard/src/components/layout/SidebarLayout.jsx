@@ -10,40 +10,114 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { logout } from "@/redux/features/auth/auth-slice";
 
-const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Employees", href: "/employees", icon: Users },
-  { name: "Finance", href: "/finance", icon: DollarSign },
-  {
-    name: "Sales",
-    icon: ShoppingCart,
-    children: [
-      { name: "Orders", href: "/sales/orders" },
-      { name: "Order History", href: "/sales/history" },
-      { name: "Products", href: "/sales/products" },
-    ],
-  },
-  {
-    name: "Warehouse",
-    icon: Boxes,
-    children: [
-      { name: "Inventory List", href: "/warehouse/inventory" },
-      { name: "Inbound/Outbound", href: "/warehouse/in-out" },
-      { name: "Inventory Management", href: "/warehouse/update" },
-      { name: "Confirm Products", href: "/warehouse/confirm-products" }
-    ],
-  },
-  { name: "Settings", href: "/settings", icon: Settings },
-];
+const getAuthorizedNavigation = (role, department) => {
+  const baseNavigation = [
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  ];
+
+  const settingsNavigation = [
+    { name: "Settings", href: "/settings", icon: Settings },
+  ];
+
+  // Admin can see everything
+  if (department === "Admin") {
+    return [
+      ...baseNavigation,
+      { name: "Employees", href: "/employees", icon: Users },
+      { name: "Finance", href: "/finance", icon: DollarSign },
+      {
+        name: "Sales",
+        icon: ShoppingCart,
+        children: [
+          { name: "Orders", href: "/sales/orders" },
+          { name: "Order History", href: "/sales/history" },
+          { name: "Products", href: "/sales/products" },
+        ],
+      },
+      {
+        name: "Warehouse",
+        icon: Boxes,
+        children: [
+          { name: "Inventory List", href: "/warehouse/inventory" },
+          { name: "Inbound/Outbound", href: "/warehouse/in-out" },
+          { name: "Update Inventory", href: "/warehouse/update" },
+          { name: "Confirm Products", href: "/warehouse/confirm-products" },
+        ],
+      },
+      ...settingsNavigation,
+    ];
+  }
+
+  if (department === "HR") {
+    return [
+      ...baseNavigation,
+      { name: "Employees", href: "/employees", icon: Users },
+      ...settingsNavigation,
+    ];
+  }
+
+  // Finance department
+  if (department === "Finance") {
+    return [
+      ...baseNavigation,
+      { name: "Finance", href: "/finance", icon: DollarSign },
+      ...settingsNavigation,
+    ];
+  }
+
+  // Sales department
+  if (department === "Sales") {
+    return [
+      ...baseNavigation,
+      {
+        name: "Sales",
+        icon: ShoppingCart,
+        children: [
+          { name: "Orders", href: "/sales/orders" },
+          { name: "Order History", href: "/sales/history" },
+          { name: "Products", href: "/sales/products" },
+        ],
+      },
+      ...settingsNavigation,
+    ];
+  }
+
+  // Warehouse department
+  if (department === "Warehouse") {
+    const warehouseNav = {
+      name: "Warehouse",
+      icon: Boxes,
+      children: [
+        { name: "Inventory List", href: "/warehouse/inventory" },
+        { name: "Inbound/Outbound", href: "/warehouse/in-out" },
+        { name: "Update Inventory", href: "/warehouse/update" },
+      ],
+    };
+
+    if (role === "Manager") {
+      warehouseNav.children.push({
+        name: "Confirm Products",
+        href: "/warehouse/confirm-products",
+      });
+    }
+
+    return [...baseNavigation, warehouseNav, ...settingsNavigation];
+  }
+
+  return [...baseNavigation, ...settingsNavigation];
+};
 
 export default function SidebarLayout() {
   const pathname = window.location.pathname;
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
+
+  const navigation = getAuthorizedNavigation(user?.role, user?.department);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -70,13 +144,11 @@ export default function SidebarLayout() {
               <div key={item.name}>
                 {item.children ? (
                   <>
-                    <div
-                      className={cn(
-                        "flex items-center px-4 py-3 text-base font-medium text-gray-600"
-                      )}
-                    >
+                    <div className="flex items-center px-4 py-3 text-base font-medium text-gray-600">
                       <item.icon className="h-6 w-6 text-gray-400" />
-                      <span className="ml-4">{item.name}</span>
+                      <span className="ml-4 hover:cursor-pointer">
+                        {item.name}
+                      </span>
                     </div>
                     <div className="space-y-1">
                       {item.children.map((child) => (

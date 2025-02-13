@@ -39,6 +39,11 @@ export default function EditStaff({ onClose, staffMember, onUpdate }) {
     }));
   };
 
+  // Filter out Admin from departments
+  const filteredDepartments = departments.filter(
+    (dept) => dept.value !== "Admin"
+  );
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <TextField
@@ -68,12 +73,6 @@ export default function EditStaff({ onClose, staffMember, onUpdate }) {
         value={formData.status || ""}
         onChange={handleChange}
         required
-        SelectProps={{
-          MenuProps: {
-            disablePortal: true,
-            disableScrollLock: true,
-          },
-        }}
       >
         <MenuItem value="Available">Available</MenuItem>
         <MenuItem value="Unavailable">Unavailable</MenuItem>
@@ -88,7 +87,7 @@ export default function EditStaff({ onClose, staffMember, onUpdate }) {
         onChange={handleChange}
         required
       >
-        {departments.map((dept) => (
+        {filteredDepartments.map((dept) => (
           <MenuItem key={dept.value} value={dept.value}>
             {dept.label}
           </MenuItem>

@@ -75,7 +75,6 @@ export default function StaffList() {
     handleMenuClose();
   };
 
-
   const filteredStaff =
     staffMembers?.filter(
       (member) =>
@@ -89,24 +88,23 @@ export default function StaffList() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Employees</h2>
+        <TextField
+          size="small"
+          placeholder="Search..."
+          value={searchQuery}
+          onChange={(e) => dispatch(setSearchQuery(e.target.value))}
+          InputProps={{
+            startAdornment: <Search className="w-4 h-4 text-gray-400 mr-2" />,
+          }}
+          sx={{
+            width: "300px",
+            "& .MuiInputBase-root": {
+              height: "32px",
+              fontSize: "14px",
+            },
+          }}
+        />
         <div className="flex items-center gap-4">
-          <TextField
-            size="small"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => dispatch(setSearchQuery(e.target.value))}
-            InputProps={{
-              startAdornment: <Search className="w-4 h-4 text-gray-400 mr-2" />,
-            }}
-            sx={{
-              width: "300px",
-              "& .MuiInputBase-root": {
-                height: "32px",
-                fontSize: "14px",
-              },
-            }}
-          />
           <FormControl
             size="small"
             sx={{
@@ -236,7 +234,10 @@ export default function StaffList() {
         onOpenChange={setAddModalOpen}
         title="Add New Staff"
       >
-        <CreateNewStaff onAddStaff={handleAddStaff} onClose={()=>setAddModalOpen(false)}/>
+        <CreateNewStaff
+          onAddStaff={handleAddStaff}
+          onClose={() => setAddModalOpen(false)}
+        />
       </Modal>
 
       <Modal

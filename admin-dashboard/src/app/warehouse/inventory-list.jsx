@@ -1,11 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import {
-  Package2,
-  MapPin,
-  Building2,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { MapPin, Building2, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   setSelectedWarehouse,
   setSelectedBrand,
@@ -13,8 +7,9 @@ import {
   setCurrentPage,
   selectFilteredInventory,
 } from "@/redux/features/warehouse/warehouseSlice";
+import { FormControl, Select, MenuItem } from "@mui/material";
 
-function InventoryList() {
+export default function InventoryList() {
   const dispatch = useDispatch();
   const {
     selectedWarehouse,
@@ -51,13 +46,18 @@ function InventoryList() {
     <div className="">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-2">
-            <Package2 className="h-8 w-8 text-indigo-600" />
-            <h1 className="text-2xl font-bold text-gray-900">Inventory</h1>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <select
+          <div className="flex items-center gap-4">
+            <FormControl
+              size="small"
+              sx={{
+                minWidth: 120,
+                "& .MuiInputBase-root": {
+                  height: "32px",
+                  fontSize: "14px",
+                },
+              }}
+            >
+              <Select
                 value={selectedCategory}
                 onChange={(e) => {
                   dispatch(
@@ -67,18 +67,28 @@ function InventoryList() {
                   );
                   dispatch(setCurrentPage(1));
                 }}
-                className="block w-40 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                displayEmpty
               >
-                <option value="all">All Categories</option>
+                <MenuItem value="all">All Categories</MenuItem>
                 {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
+                  <MenuItem key={category.id} value={category.id}>
                     {category.name}
-                  </option>
+                  </MenuItem>
                 ))}
-              </select>
-            </div>
-            <div className="flex items-center space-x-2">
-              <select
+              </Select>
+            </FormControl>
+
+            <FormControl
+              size="small"
+              sx={{
+                minWidth: 120,
+                "& .MuiInputBase-root": {
+                  height: "32px",
+                  fontSize: "14px",
+                },
+              }}
+            >
+              <Select
                 value={selectedBrand}
                 onChange={(e) => {
                   dispatch(
@@ -88,19 +98,28 @@ function InventoryList() {
                   );
                   dispatch(setCurrentPage(1));
                 }}
-                className="block w-40 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                displayEmpty
               >
-                <option value="all">All Brands</option>
+                <MenuItem value="all">All Brands</MenuItem>
                 {brands.map((brand) => (
-                  <option key={brand.id} value={brand.id}>
+                  <MenuItem key={brand.id} value={brand.id}>
                     {brand.name}
-                  </option>
+                  </MenuItem>
                 ))}
-              </select>
-            </div>
-            <div className="flex items-center space-x-2">
-              <MapPin className="h-5 w-5 text-gray-500" />
-              <select
+              </Select>
+            </FormControl>
+
+            <FormControl
+              size="small"
+              sx={{
+                minWidth: 120,
+                "& .MuiInputBase-root": {
+                  height: "32px",
+                  fontSize: "14px",
+                },
+              }}
+            >
+              <Select
                 value={selectedWarehouse}
                 onChange={(e) => {
                   dispatch(
@@ -110,16 +129,19 @@ function InventoryList() {
                   );
                   dispatch(setCurrentPage(1));
                 }}
-                className="block w-48 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                displayEmpty
+                startAdornment={
+                  <MapPin className="h-5 w-5 text-gray-500 ml-2 mr-2" />
+                }
               >
-                <option value="all">All Warehouses</option>
+                <MenuItem value="all">All Warehouses</MenuItem>
                 {warehouses.map((warehouse) => (
-                  <option key={warehouse.id} value={warehouse.id}>
+                  <MenuItem key={warehouse.id} value={warehouse.id}>
                     {warehouse.name}
-                  </option>
+                  </MenuItem>
                 ))}
-              </select>
-            </div>
+              </Select>
+            </FormControl>
           </div>
         </div>
 
@@ -316,5 +338,3 @@ function InventoryList() {
     </div>
   );
 }
-
-export default InventoryList;

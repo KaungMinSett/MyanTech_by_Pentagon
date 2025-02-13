@@ -8,12 +8,17 @@ import { departments, roles } from "@/mocks/employees/staff-data";
 
 const CreateNewStaff = ({ onClose }) => {
   const dispatch = useDispatch();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     role: "",
     department: "",
+    status: "Available",
+    joinDate: new Date().toISOString().split("T")[0],
   });
 
   const handleChange = (e) => {
@@ -24,19 +29,41 @@ const CreateNewStaff = ({ onClose }) => {
       ...(name === "role" && { department: "" }),
     }));
   };
-  
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.email) {
-      return alert("Please fill all fields");
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      if (
+        !formData.name ||
+        !formData.email ||
+        !formData.password ||
+        !formData.role ||
+        !formData.department
+      ) {
+        throw new Error("Please fill in all required fields");
+      }
+
+      dispatch(addStaff(formData));
+      onClose();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
     }
-    dispatch(addStaff(formData));
-    onClose();
   };
+
+  // Filter out Admin from departments
+  const filteredDepartments = departments.filter(
+    (dept) => dept.value !== "Admin"
+  );
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {error && <div className="text-red-500 text-sm mb-4">{error}</div>}
+
       <TextField
         fullWidth
         label="Full Name"
@@ -44,6 +71,7 @@ const CreateNewStaff = ({ onClose }) => {
         value={formData.name}
         onChange={handleChange}
         required
+        error={!!error && !formData.name}
       />
       <TextField
         fullWidth
@@ -53,6 +81,7 @@ const CreateNewStaff = ({ onClose }) => {
         value={formData.email}
         onChange={handleChange}
         required
+        error={!!error && !formData.email}
       />
       <TextField
         fullWidth
@@ -62,6 +91,7 @@ const CreateNewStaff = ({ onClose }) => {
         value={formData.password}
         onChange={handleChange}
         required
+        error={!!error && !formData.password}
       />
       <TextField
         select
@@ -71,6 +101,7 @@ const CreateNewStaff = ({ onClose }) => {
         value={formData.role}
         onChange={handleChange}
         required
+        error={!!error && !formData.role}
       >
         {roles.map((role) => (
           <MenuItem key={role.value} value={role.value}>
@@ -88,8 +119,9 @@ const CreateNewStaff = ({ onClose }) => {
         onChange={handleChange}
         required
         disabled={!formData.role}
+        error={!!error && !formData.department}
       >
-        {departments.map((dept) => (
+        {filteredDepartments.map((dept) => (
           <MenuItem key={dept.value} value={dept.value}>
             {dept.label}
           </MenuItem>
@@ -101,9 +133,10 @@ const CreateNewStaff = ({ onClose }) => {
         variant="contained"
         color="primary"
         fullWidth
+        disabled={isLoading}
         sx={{ mt: 2 }}
       >
-        Create Member
+        {isLoading ? "Creating..." : "Create Member"}
       </Button>
     </form>
   );

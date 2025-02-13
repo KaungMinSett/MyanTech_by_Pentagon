@@ -1,18 +1,21 @@
 import { useState } from "react";
-import { Package2, Check } from "lucide-react";
+import { Package2, Check, X } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import Button from "@mui/material/Button";
 import { Modal } from "@/components/modal/modal";
 import {
   approveInboundOrder,
+  rejectInboundOrder,
   selectPendingInboundOrders,
 } from "@/redux/features/warehouse/warehouseSlice";
 
 export default function ConfirmProducts() {
   const dispatch = useDispatch();
   const [selectedItems, setSelectedItems] = useState([]);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [confirmedCount, setConfirmedCount] = useState(0);
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState("");
+  const [actionType, setActionType] = useState("");
 
   const pendingItems = useSelector(selectPendingInboundOrders);
 
@@ -25,27 +28,31 @@ export default function ConfirmProducts() {
     });
   };
 
-  const handleConfirmSelected = () => {
+  const handleAction = (action) => {
     const count = selectedItems.length;
     selectedItems.forEach((itemId) => {
-      dispatch(approveInboundOrder({ orderId: itemId }));
+      if (action === "confirm") {
+        dispatch(approveInboundOrder({ orderId: itemId }));
+      } else {
+        dispatch(rejectInboundOrder({ orderId: itemId }));
+      }
     });
     setSelectedItems([]);
-    setConfirmedCount(count);
-    setShowSuccessModal(true);
+    setActionType(action);
+    setModalMessage(
+      `${count} item${count !== 1 ? "s" : ""} have been ${
+        action === "confirm" ? "approved and added to inventory" : "declined"
+      }.`
+    );
+    setShowActionModal(false);
+    setShowResultModal(true);
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Package2 className="h-8 w-8 text-indigo-600" />
-          <h1 className="text-2xl font-bold text-gray-900">Confirm Products</h1>
-        </div>
-      </div>
 
       <div className="bg-white shadow rounded-lg overflow-hidden relative">
-        <div className="max-h-[calc(100vh-230px)] overflow-y-auto">
+        <div className="max-h-[calc(100vh-180px)] overflow-y-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50 sticky top-0">
               <tr>
@@ -125,28 +132,62 @@ export default function ConfirmProducts() {
         <div className="flex justify-end mr-6">
           <Button
             variant="outlined"
-            onClick={handleConfirmSelected}
+            onClick={() => setShowActionModal(true)}
             disabled={selectedItems.length === 0}
             className="flex items-center"
           >
-            <Check className="h-4 w-4 mr-2" />
-            Confirm
+            Action
           </Button>
         </div>
       )}
 
-      <Modal open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+      <Modal open={showActionModal} onOpenChange={setShowActionModal}>
+        <div className="p-6">
+          <h3 className="text-lg font-medium text-gray-700 mb-4">
+            Select Action for Selected Items
+          </h3>
+          <div className="space-y-4">
+            <Button
+              variant="outlined"
+              color="success"
+              fullWidth
+              onClick={() => handleAction("confirm")}
+              className="flex items-center justify-center"
+            >
+              <Check className="h-4 w-4 mr-2" />
+              Confirm Items
+            </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              fullWidth
+              onClick={() => handleAction("reject")}
+              className="flex items-center justify-center"
+            >
+              <X className="h-4 w-4 mr-2" />
+              Reject Items
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal open={showResultModal} onOpenChange={setShowResultModal}>
         <div className="p-6">
           <div className="text-center">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100">
-              <Check className="h-6 w-6 text-green-600" />
+            <div
+              className={`mx-auto flex items-center justify-center h-12 w-12 rounded-full ${
+                actionType === "confirm" ? "bg-green-100" : "bg-red-100"
+              }`}
+            >
+              {actionType === "confirm" ? (
+                <Check className="h-6 w-6 text-green-600" />
+              ) : (
+                <X className="h-6 w-6 text-red-600" />
+              )}
             </div>
             <div className="mt-3 text-center sm:mt-5">
               <div className="mt-2">
-                <p className="text-sm text-gray-500">
-                  {confirmedCount} item{confirmedCount !== 1 ? "s" : ""} have
-                  been approved and added to inventory.
-                </p>
+                <p className="text-sm text-gray-500">{modalMessage}</p>
               </div>
             </div>
           </div>
@@ -154,7 +195,7 @@ export default function ConfirmProducts() {
             <Button
               variant="outlined"
               fullWidth
-              onClick={() => setShowSuccessModal(false)}
+              onClick={() => setShowResultModal(false)}
             >
               Close
             </Button>

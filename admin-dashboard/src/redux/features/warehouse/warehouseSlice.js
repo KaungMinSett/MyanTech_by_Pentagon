@@ -6,6 +6,7 @@ import {
 } from "@/mocks/warehouse/inbound-outbound-data";
 
 const initialState = {
+  // Data
   inventory: inventoryData.inventory,
   products: inventoryData.products,
   brands: inventoryData.brands,
@@ -13,11 +14,30 @@ const initialState = {
   warehouses: inventoryData.warehouses,
   inboundOrders: inboundData,
   outboundOrders: outboundData,
+
+  // UI State
   selectedWarehouse: "all",
   selectedBrand: "all",
   selectedCategory: "all",
   currentPage: 1,
   itemsPerPage: 7,
+
+  // Form State
+  form: {
+    product: null,
+    productInput: "",
+    categoryInput: "",
+    brandInput: "",
+    warehouseInput: "",
+    descriptionInput: "",
+    quantity: "",
+    showDropdowns: {
+      product: false,
+      category: false,
+      brand: false,
+      warehouse: false,
+    },
+  },
 };
 
 const warehouseSlice = createSlice({
@@ -89,10 +109,36 @@ const warehouseSlice = createSlice({
       if (orderIndex !== -1) {
         state.inboundOrders[orderIndex] = {
           ...state.inboundOrders[orderIndex],
-          status: "rejected",
+          status: "declined",
           updated_at: new Date().toISOString(),
         };
       }
+    },
+
+    createInboundOrder: (state, action) => {
+      state.inboundOrders.push(action.payload);
+    },
+    setFormField: (state, action) => {
+      const { field, value } = action.payload;
+      state.form[field] = value;
+    },
+    setDropdownVisibility: (state, action) => {
+      const { dropdown, isVisible } = action.payload;
+      state.form.showDropdowns[dropdown] = isVisible;
+    },
+    resetForm: (state) => {
+      state.form = initialState.form;
+    },
+    setSelectedProductForm: (state, action) => {
+      const product = action.payload;
+      state.form = {
+        ...state.form,
+        product,
+        productInput: product.name,
+        categoryInput: product.category?.name || "",
+        brandInput: product.brand?.name || "",
+        descriptionInput: product.description || "",
+      };
     },
   },
 });
@@ -143,6 +189,11 @@ export const {
   updateInventoryQuantity,
   approveInboundOrder,
   rejectInboundOrder,
+  createInboundOrder,
+  setFormField,
+  setDropdownVisibility,
+  resetForm,
+  setSelectedProductForm,
 } = warehouseSlice.actions;
 
 export default warehouseSlice.reducer;
