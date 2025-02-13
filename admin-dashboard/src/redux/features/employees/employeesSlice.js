@@ -1,11 +1,27 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { initialStaffMembers } from "@/mocks/employees/staff-data";
+import axiosInstance from "@/api/axios";
+
+// Create new staff member
+export const createStaff = createAsyncThunk(
+  "employees/createStaff",
+  async (staffData, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.post("/hr/employees/", staffData);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Failed to create staff");
+    }
+  }
+);
 
 const initialState = {
   staffMembers: initialStaffMembers,
   selectedStaff: null,
   filter: "",
   searchQuery: "",
+  loading: false,
+  error: null,
 };
 
 const employeesSlice = createSlice({
@@ -49,6 +65,21 @@ const employeesSlice = createSlice({
     setSearchQuery: (state, action) => {
       state.searchQuery = action.payload;
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(createStaff.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(createStaff.fulfilled, (state, action) => {
+        state.staffMembers.push(action.payload);
+        state.loading = false;
+      })
+      .addCase(createStaff.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
 
