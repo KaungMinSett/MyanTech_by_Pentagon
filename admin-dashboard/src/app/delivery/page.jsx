@@ -5,7 +5,7 @@ import { Package, Truck, MapPin } from "lucide-react";
 export function DeliveryPage() {
   const allOrders = useSelector(selectFilteredOrders);
   const acceptedOrders = allOrders.filter(
-    (order) => order.status === "Accepted"
+    (order) => order.status === "Confirmed"
   );
 
   return (

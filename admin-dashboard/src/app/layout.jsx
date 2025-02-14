@@ -67,15 +67,25 @@ function Layout() {
             <Route
               path="/sales/*"
               element={
-                <ProtectedRoute>
-                  <Routes>
-                    <Route index element={<Navigate to="orders" replace />} />
-                    <Route path="orders" element={<OrdersPage />} />
-                    <Route path="orders/:id" element={<OrderDetailPage />} />
-                    <Route path="history" element={<OrderHistoryPage />} />
-                    <Route path="products" element={<ProductList />} />
-                  </Routes>
-                </ProtectedRoute>
+                <Routes>
+                  <Route index element={<Navigate to="orders" replace />} />
+                  <Route 
+                    path="orders" 
+                    element={<OrdersPage />} 
+                  />
+                  <Route 
+                    path="orders/:id" 
+                    element={<OrderDetailPage />} 
+                  />
+                  <Route 
+                    path="history" 
+                    element={<OrderHistoryPage />} 
+                  />
+                  <Route 
+                    path="products" 
+                    element={<ProductList />} 
+                  />
+                </Routes>
               }
             />
 

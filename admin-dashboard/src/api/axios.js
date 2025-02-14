@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -9,12 +9,33 @@ const axiosInstance = axios.create({
   },
 });
 
+// Track token refresh state
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 // Add request interceptor for authentication
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("access_token");
+    // Skip authentication for public routes
+    const publicRoutes = ['/sales/api/orders', '/api/shop/productlist/'];
+    if (publicRoutes.some(route => config.url?.includes(route))) {
+      return config;
+    }
+
+    const token = localStorage.getItem("token");
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = `JWT ${token}`;
     }
     return config;
   },
@@ -29,35 +50,61 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Check if error.response exists before accessing status
+    // Skip token refresh for public routes
+    const publicRoutes = ['/sales/api/orders', '/api/shop/productlist/'];
+    if (publicRoutes.some(route => originalRequest.url?.includes(route))) {
+      return Promise.reject(error);
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(token => {
+            originalRequest.headers.Authorization = `JWT ${token}`;
+            return axiosInstance(originalRequest);
+          })
+          .catch(err => Promise.reject(err));
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
 
       try {
-        const refreshToken = localStorage.getItem("refresh_token");
-        const response = await axios.post(`${API_URL}/jwt/refresh/`, {
+        const refreshToken = localStorage.getItem("refresh");
+        if (!refreshToken) {
+          throw new Error("No refresh token available");
+        }
+
+        const response = await axios.post(`${API_URL}/auth/jwt/refresh/`, {
           refresh: refreshToken,
         });
 
-        localStorage.setItem("access_token", response.data.access);
-        originalRequest.headers.Authorization = `Bearer ${response.data.access}`;
-
+        const { access } = response.data;
+        localStorage.setItem("token", access);
+        
+        axiosInstance.defaults.headers.common['Authorization'] = `JWT ${access}`;
+        originalRequest.headers.Authorization = `JWT ${access}`;
+        
+        processQueue(null, access);
         return axiosInstance(originalRequest);
       } catch (refreshError) {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
+        processQueue(refreshError, null);
+        localStorage.removeItem("token");
+        localStorage.removeItem("refresh");
         localStorage.removeItem("user");
-        window.location.href = "/login";
+        
+        if (window.location.pathname !== '/login') {
+          window.location.href = "/login";
+        }
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
 
-    // Return a structured error object
-    return Promise.reject({
-      status: error.response?.status,
-      data: error.response?.data,
-      message: error.message || "Network error occurred",
-    });
+    return Promise.reject(error);
   }
 );
 

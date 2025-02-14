@@ -162,8 +162,9 @@ const ordersSlice = createSlice({
     acceptOrder: (state, action) => {
       const order = state.orders.find((order) => order.id === action.payload);
       if (order) {
-        order.status = "Accepted";
+        order.status = "Confirmed";
         order.payment = "Success";
+        order.warehouse_ready = true;
       }
     },
     rejectOrder: (state, action) => {
@@ -223,6 +224,35 @@ export const selectFilteredOrders = createSelector(
           orderDate <= new Date(endDate.setHours(23, 59, 59)));
 
       return matchesSearch && matchesDate;
+    });
+  }
+);
+
+export const selectPendingOrders = createSelector(
+  [selectOrdersState],
+  ({ orders, dateFilter, searchQuery }) => {
+    return orders.filter((order) => {
+      const matchesSearch =
+        !searchQuery ||
+        order.customer.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesStatus = order.status !== "Confirmed" && order.status !== "Rejected";
+
+      if (!dateFilter.startDate || !dateFilter.endDate) {
+        return matchesSearch && matchesStatus;
+      }
+
+      const orderDate = new Date(order.date);
+      const start = new Date(dateFilter.startDate);
+      const end = new Date(dateFilter.endDate);
+      end.setHours(23, 59, 59);
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        orderDate >= start &&
+        orderDate <= end
+      );
     });
   }
 );
