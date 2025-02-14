@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { MapPin, Building2, ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -6,6 +7,7 @@ import {
   setSelectedCategory,
   setCurrentPage,
   selectFilteredInventory,
+  fetchInventory,
 } from "@/redux/features/warehouse/warehouseSlice";
 import { FormControl, Select, MenuItem } from "@mui/material";
 
@@ -21,7 +23,13 @@ export default function InventoryList() {
     brands,
     categories,
     warehouses,
+    loading,
+    error,
   } = useSelector((state) => state.warehouse);
+
+  useEffect(() => {
+    dispatch(fetchInventory());
+  }, [dispatch]);
 
   const filteredInventory = useSelector(selectFilteredInventory);
 

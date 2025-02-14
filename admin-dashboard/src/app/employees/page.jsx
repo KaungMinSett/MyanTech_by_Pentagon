@@ -17,6 +17,7 @@ import {
   setFilter,
   setSearchQuery,
   fetchEmployees,
+  updateStaffAsync,
 } from "@/redux/features/employees/employeesSlice";
 import { toast } from "react-hot-toast";
 
@@ -38,11 +39,14 @@ export default function StaffList() {
 
   const handleDeleteClick = async (id) => {
     try {
-      await dispatch(deleteStaffAsync(id)).unwrap();
-      toast.success("Employee deleted successfully!");
-      handleMenuClose();
+      const result = await dispatch(deleteStaffAsync(id)).unwrap();
+      if (result) {
+        toast.success("Employee deleted successfully!");
+        handleMenuClose();
+      }
     } catch (err) {
-      toast.error(err.message || "Failed to delete staff member");
+      toast.error(err || "Failed to delete employee");
+      handleMenuClose();
     }
   };
 
@@ -59,10 +63,17 @@ export default function StaffList() {
     handleMenuClose();
   };
 
-  const handleUpdate = (updatedStaff) => {
-    dispatch(updateStaff(updatedStaff));
-    setEditModalOpen(false);
-    setSelectedMember(null);
+  const handleUpdate = async (updatedStaff) => {
+    try {
+      const result = await dispatch(updateStaffAsync(updatedStaff)).unwrap();
+      if (result) {
+        toast.success("Employee updated successfully!");
+        setEditModalOpen(false);
+        setSelectedMember(null);
+      }
+    } catch (err) {
+      toast.error(err || "Failed to update employee");
+    }
   };
 
   const handleAddStaff = (newStaff) => {
