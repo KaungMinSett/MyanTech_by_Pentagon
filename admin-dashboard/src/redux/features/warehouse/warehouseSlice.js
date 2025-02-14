@@ -14,35 +14,48 @@ export const fetchInventory = createAsyncThunk(
   "warehouse/fetchInventory",
   async (_, { rejectWithValue }) => {
     try {
-      try {
-        const response = await axiosInstance.get("/warehouse/api/inventory/");
-        console.log("API Response:", response.data);
-        return response.data;
-      } catch (apiError) {
-        console.log("API Error, falling back to mock data:", apiError);
-        return {
-          warehouses: inventoryData.warehouses,
-          categories: inventoryData.categories,
-          brands: inventoryData.brands,
-          products: inventoryData.products,
-          inventory: inventoryData.inventory,
-        };
-      }
+      const [inventoryRes, productsRes, warehousesRes, brandsRes, categoriesRes] = 
+        await Promise.all([
+          axiosInstance.get("/warehouse/api/inventory/"),
+          axiosInstance.get("/warehouse/api/products/"),
+          axiosInstance.get("/warehouse/api/warehouses/"),
+          axiosInstance.get("/warehouse/api/brands/"),
+          axiosInstance.get("/warehouse/api/categories/")
+        ]);
+
+      // Transform inventory data to match expected structure
+      const inventory = Array.isArray(inventoryRes.data) ? inventoryRes.data.map(item => ({
+        id: item.id,
+        product_id: item.product,
+        warehouse_id: item.warehouse,
+        quantity: item.quantity,
+        zone: item.zone
+      })) : [];
+
+      const payload = {
+        inventory,
+        products: productsRes.data,
+        warehouses: warehousesRes.data,
+        brands: brandsRes.data,
+        categories: categoriesRes.data
+      };
+
+      return payload;
+
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data || "Failed to fetch inventory"
-      );
+      console.error("API Error:", error);
+      return rejectWithValue(error.message);
     }
   }
 );
 
 const initialState = {
   // Data
-  inventory: inventoryData.inventory,
-  products: inventoryData.products,
-  brands: inventoryData.brands,
-  categories: inventoryData.categories,
-  warehouses: inventoryData.warehouses,
+  inventory: [],
+  products: [],
+  warehouses: [],
+  brands: [],
+  categories: [],
   inboundOrders: inboundData,
   outboundOrders: outboundData,
 
@@ -51,22 +64,21 @@ const initialState = {
   selectedBrand: "all",
   selectedCategory: "all",
   currentPage: 1,
-  itemsPerPage: 7,
+  itemsPerPage: 10,
 
   // Form State
   form: {
-    product: null,
     productInput: "",
+    selectedProduct: null,
     categoryInput: "",
+    selectedCategory: null,
     brandInput: "",
-    warehouseInput: "",
-    descriptionInput: "",
+    selectedBrand: null,
     quantity: "",
     showDropdowns: {
       product: false,
       category: false,
       brand: false,
-      warehouse: false,
     },
   },
 
@@ -168,7 +180,7 @@ const warehouseSlice = createSlice({
       const product = action.payload;
       state.form = {
         ...state.form,
-        product,
+        product: product,
         productInput: product.name,
         categoryInput: product.category?.name || "",
         brandInput: product.brand?.name || "",
@@ -183,16 +195,23 @@ const warehouseSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchInventory.fulfilled, (state, action) => {
-        state.warehouses = action.payload.warehouses;
-        state.categories = action.payload.categories;
-        state.brands = action.payload.brands;
-        state.products = action.payload.products;
+        console.log('Reducer Received Data:', action.payload);
         state.inventory = action.payload.inventory;
+        state.products = action.payload.products;
+        state.warehouses = action.payload.warehouses;
+        state.brands = action.payload.brands;
+        state.categories = action.payload.categories;
         state.loading = false;
+        console.log('State After Update:', state.inventory);
       })
       .addCase(fetchInventory.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        state.inventory = [];
+        state.products = [];
+        state.warehouses = [];
+        state.brands = [];
+        state.categories = [];
       });
   },
 });
@@ -208,7 +227,7 @@ export const selectInventoryBase = (state) => ({
   products: state.warehouse.products,
 });
 
-// Memoized selectors
+// Memoized
 export const selectPendingInboundOrders = createSelector(
   [selectInboundOrders],
   (inboundOrders) => inboundOrders.filter((order) => order.status === "pending")
@@ -216,23 +235,28 @@ export const selectPendingInboundOrders = createSelector(
 
 export const selectFilteredInventory = createSelector(
   [selectInventoryBase],
-  ({
-    inventory,
-    selectedWarehouse,
-    selectedBrand,
-    selectedCategory,
-    products,
-  }) =>
-    inventory.filter((item) => {
+  (state) => {
+    const {
+      inventory,
+      selectedWarehouse,
+      selectedBrand,
+      selectedCategory,
+      products,
+    } = state;
+
+    if (!inventory || !products) return [];
+    
+    return inventory.filter((item) => {
       const product = products.find((p) => p.id === item.product_id);
       return (
         (selectedWarehouse === "all" ||
           item.warehouse_id === selectedWarehouse) &&
-        (selectedBrand === "all" || product?.brand_id === selectedBrand) &&
+        (selectedBrand === "all" || product?.brand === selectedBrand) &&
         (selectedCategory === "all" ||
-          product?.category_id === selectedCategory)
+          product?.category === selectedCategory)
       );
-    })
+    });
+  }
 );
 
 export const {
