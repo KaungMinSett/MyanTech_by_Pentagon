@@ -6,6 +6,8 @@ import SupportView from '../views/SupportView.vue';
 import LoginView from '../views/LoginView.vue';
 import SignupView from '../views/SignupView.vue';
 import CheckoutView from "../views/CheckoutView.vue"
+import OrdersView from "../views/OrdersView.vue"
+import OrderDetailsView from '../views/OrderDetailsView.vue';
 
 const routes = [
   { path: '/', name:"home", component: HomeView },
@@ -15,11 +17,13 @@ const routes = [
   { path: '/auth/login', name:"login", component: LoginView },
   { path: '/auth/signup', name:"signup", component: SignupView },
   { path: '/checkout', name:"checkout", component: CheckoutView },
+  { path: '/history', name:"history", component: OrdersView },
+  { path: '/history/:id', name:"history-details", component: OrderDetailsView },
 ];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
-});;
+});
 
 export default router;

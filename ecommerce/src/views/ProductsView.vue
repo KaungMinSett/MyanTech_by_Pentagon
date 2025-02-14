@@ -46,31 +46,6 @@
         <!-- Products -->
         <div class="mx-auto mt-4 w-10/12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
 
-            <router-link :to="{ name: 'product-details', params: { id: index } }" v-for="(each, index) in 2">
-                <div class="card bg-base-100 interactive">
-                    <figure class="bg-neutral-content rounded relative">
-                        <span
-                            class="absolute bottom-2 right-2 interactive bg-base-100 p-2 rounded-full text-accent opacity-80"><svg
-                                xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="lucide lucide-shopping-bag">
-                                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-                                <path d="M3 6h18" />
-                                <path d="M16 10a4 4 0 0 1-8 0" />
-                            </svg></span>
-                        <img src="https://pngimg.com/d/macbook_PNG65.png" alt="Shoes"
-                            class="h-[20rem] object-scale-down" />
-                    </figure>
-                    <div class="card-body">
-                        <h2 class="card-title">
-                            Card Title
-                            <div class="badge badge-secondary">NEW</div>
-                        </h2>
-                        <span>$54.23</span>
-                    </div>
-                </div>
-            </router-link>
-
             <router-link :to="{ name: 'product-details', params: { id: each.id } }" v-for="each in appStore.products"
                 :key="each.id">
                 <div class="card bg-base-100 interactive">
@@ -90,9 +65,9 @@
                     <div class="card-body">
                         <h2 class="card-title">
                             {{ each.name }}
-                            <div class="badge badge-secondary">NEW</div>
+                            <!-- <div class="badge badge-secondary">NEW</div> -->
                         </h2>
-                        <span>{{ each.details.price }}</span>
+                        <span>$ {{ each.details.price }}</span>
                     </div>
                 </div>
             </router-link>

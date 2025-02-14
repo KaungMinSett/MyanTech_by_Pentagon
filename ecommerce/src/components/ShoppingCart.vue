@@ -17,7 +17,7 @@
         </svg>
         <!-- Badge for item count -->
         <span v-if="totalItems > 0"
-          class="absolute -top-2 -right-3 bg-neutral text-neutral-content rounded-full text-sm px-2">{{ totalItems
+          class="absolute -top-1 -right-1 bg-neutral text-neutral-content rounded-full text-xs px-1">{{ totalItems
           }}</span>
       </label>
     </div>
@@ -43,7 +43,7 @@
           <section v-for="item in cartItems" :key="item.productId" class="flex gap-4 items-center mb-4 border-b py-2">
             <!-- Image -->
             <img :src="'http://127.0.0.1:8000' + item.details.image" :alt="item.name"
-              class="w-16 h-16 object-cover rounded" />
+              class="w-16 h-16 object-contain rounded" />
             <!-- Name & Quantity -->
             <div class="flex-1">
               <p class="font-semibold uppercase">{{ item.name }}</p>
@@ -76,12 +76,14 @@
           </section>
         </section>
         <!-- Footer -->
-        <section class="py-4">
+        <section v-if="totalItems > 0" class="py-4">
           <section class="flex justify-between items-center text-xl font-bold mb-4">
             <span>Subtotal</span>
             <span>${{ cartTotal.toFixed(2) }}</span>
           </section>
-          <button class="btn btn-block btn-neutral">Checkout</button>
+          <router-link :to="{name:'checkout'}">
+            <button class="btn btn-block btn-neutral">Checkout</button>
+          </router-link>
         </section>
       </div>
     </div>

@@ -9,9 +9,9 @@
           class="w-72 h-72 md:w-96 md:h-96 flex items-center justify-center outline-none"
         >
           <img
-            src="https://pngimg.com/d/macbook_PNG65.png"
+            src="../assets/macbook.png"
             alt="MacBook Pro"
-            class="w-full h-full object-cover rounded-lg"
+            class="w-full h-full object-contain rounded-lg"
           />
         </a>
       </div>
@@ -51,7 +51,7 @@
 
         <!-- Container for add to cart and wishlist -->
         <div class="flex space-x-4">
-            <button  @click="cartStore.addToCart(1, 1)" class="btn btn-wide btn-neutral">
+            <button  @click="cartStore.addToCart(1, 1)" class="btn md:btn-wide btn-neutral">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-cart"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
                 <span class="">Add to Cart</span>
             </button>
