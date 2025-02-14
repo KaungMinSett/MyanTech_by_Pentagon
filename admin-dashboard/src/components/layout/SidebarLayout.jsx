@@ -10,9 +10,11 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { logout } from "@/redux/features/auth/auth-slice";
+import NotificationBadge from "@/components/NotificationBadge";
+import { selectOrderNotifications } from "@/redux/features/orders/ordersSlice";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -36,6 +38,7 @@ const navigation = [
       { name: "Confirm Products", href: "/warehouse/confirm-products" },
     ],
   },
+  { name: "Delivery", href: "/delivery", icon: Package },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
@@ -43,6 +46,7 @@ export default function SidebarLayout() {
   const pathname = window.location.pathname;
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const orderNotifications = useSelector(selectOrderNotifications);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -71,8 +75,11 @@ export default function SidebarLayout() {
                   <>
                     <div className="flex items-center px-4 py-3 text-base font-medium text-gray-600">
                       <item.icon className="h-6 w-6 text-gray-400" />
-                      <span className="ml-4 hover:cursor-pointer">
+                      <span className="ml-4 hover:cursor-pointer relative">
                         {item.name}
+                        {item.name === "Sales" && orderNotifications > 0 && (
+                          <NotificationBadge count={orderNotifications} />
+                        )}
                       </span>
                     </div>
                     <div className="space-y-1">
@@ -81,13 +88,17 @@ export default function SidebarLayout() {
                           key={child.name}
                           to={child.href}
                           className={cn(
-                            "flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors w-full",
+                            "flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors w-full relative",
                             pathname === child.href
                               ? "bg-blue-50 text-blue-600"
                               : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                           )}
                         >
                           <span className="ml-10">{child.name}</span>
+                          {child.name === "Orders" &&
+                            orderNotifications > 0 && (
+                              <NotificationBadge count={orderNotifications} />
+                            )}
                         </Link>
                       ))}
                     </div>

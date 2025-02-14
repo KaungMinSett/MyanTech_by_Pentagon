@@ -1,4 +1,3 @@
-
 import { Button } from "@radix-ui/themes";
 import toast, { Toaster } from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,6 +7,7 @@ import {
   resetForm,
   setSelectedProductForm,
   createInboundOrder,
+  setSelectedItem,
 } from "@/redux/features/warehouse/warehouseSlice";
 
 export default function ProductForm() {
@@ -34,58 +34,45 @@ export default function ProductForm() {
   };
 
   const handleSave = () => {
-    if (!form.product || !form.quantity) {
+    if (
+      !form.product ||
+      !form.category ||
+      !form.brand ||
+      !form.warehouse ||
+      !form.quantity
+    ) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    if (
-      !form.product.category ||
-      !form.product.brand ||
-      !form.product.warehouse
-    ) {
-      toast.error("Invalid product data");
-      return;
-    }
-
     const newInboundOrder = {
-      id: Date.now(),
       product: {
         id: form.product.id,
         name: form.product.name,
         sku: form.product.sku,
         category: {
-          id: form.product.category.id,
-          name: form.product.category.name,
+          id: form.category.id,
+          name: form.category.name,
         },
         brand: {
-          id: form.product.brand.id,
-          name: form.product.brand.name,
+          id: form.brand.id,
+          name: form.brand.name,
         },
       },
-      warehouse: form.product.warehouse,
-      quantity: parseInt(form.quantity),
-      status: "pending",
-      created_by: {
-        id: user.id,
-        name: user.name,
+      warehouse: {
+        id: form.warehouse.id,
+        name: form.warehouse.name,
       },
-      created_at: new Date().toISOString(),
+      quantity: parseInt(form.quantity),
+      created_by: {
+        id: 1, // Using mock user ID
+        name: "Mock User", // Using mock user name
+      },
     };
 
     dispatch(createInboundOrder(newInboundOrder));
     toast.success("Product submitted for approval!");
-
-    // Reset all form inputs
     dispatch(resetForm());
-
-    // Reset all dropdowns
-    dispatch(setDropdownVisibility({ dropdown: "product", isVisible: false }));
-    dispatch(setDropdownVisibility({ dropdown: "category", isVisible: false }));
-    dispatch(setDropdownVisibility({ dropdown: "brand", isVisible: false }));
-    dispatch(
-      setDropdownVisibility({ dropdown: "warehouse", isVisible: false })
-    );
   };
 
   return (
@@ -173,9 +160,9 @@ export default function ProductForm() {
                         className="p-2.5 hover:bg-gray-100 cursor-pointer text-sm"
                         onMouseDown={() => {
                           dispatch(
-                            setFormField({
-                              field: "categoryInput",
-                              value: category.name,
+                            setSelectedItem({
+                              type: "category",
+                              item: category,
                             })
                           );
                           dispatch(
@@ -225,9 +212,9 @@ export default function ProductForm() {
                         className="p-2.5 hover:bg-gray-100 cursor-pointer text-sm"
                         onMouseDown={() => {
                           dispatch(
-                            setFormField({
-                              field: "brandInput",
-                              value: brand.name,
+                            setSelectedItem({
+                              type: "brand",
+                              item: brand,
                             })
                           );
                           dispatch(
@@ -277,9 +264,9 @@ export default function ProductForm() {
                         className="p-2.5 hover:bg-gray-100 cursor-pointer text-sm"
                         onMouseDown={() => {
                           dispatch(
-                            setFormField({
-                              field: "warehouseInput",
-                              value: warehouse.name,
+                            setSelectedItem({
+                              type: "warehouse",
+                              item: warehouse,
                             })
                           );
                           dispatch(

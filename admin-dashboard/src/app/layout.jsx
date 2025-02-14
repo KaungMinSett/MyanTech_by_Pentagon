@@ -35,6 +35,7 @@ import Error404 from "@/components/error/Error404";
 import FinanceList from "./finance/page";
 import FinanceDetail from "../components/finance/finance-detail";
 import SalesReports from "./reports/sale-report";
+import { DeliveryPage } from "@/app/delivery/page";
 
 function Layout() {
   const location = useLocation();
@@ -74,6 +75,16 @@ function Layout() {
                     <Route path="history" element={<OrderHistoryPage />} />
                     <Route path="products" element={<ProductList />} />
                   </Routes>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Add Delivery Route */}
+            <Route
+              path="/delivery"
+              element={
+                <ProtectedRoute>
+                  <DeliveryPage />
                 </ProtectedRoute>
               }
             />

@@ -164,30 +164,32 @@ export default function StaffList() {
           <table className="w-full table-fixed divide-y divide-gray-200">
             <thead className="bg-gray-50 sticky top-0">
               <tr>
-                <th className="w-[8%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+                <th className="w-[10%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  ID
+                </th>
                 <th className="w-[20%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Staff Name
                 </th>
-                <th className="w-[23%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-[20%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Contact Details
                 </th>
-                <th className="w-[11%] px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-[25%] px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="w-[16%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider pl-12">
+                <th className="w-[20%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Department
                 </th>
-                <th className="w-[14%] px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Joined Date
+                <th className="w-[20%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Role
                 </th>
-                <th className="w-[8%] px-6 py-3"></th>
+                <th className="w-[10%] px-6 py-3"></th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredStaff.map((member) => (
                 <tr key={member.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {member.id}
+                    #{member.id}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{member.name}</div>
@@ -206,14 +208,11 @@ export default function StaffList() {
                       {member.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap pl-12">
-                    <div className="text-sm text-gray-900">
-                      {member.department}
-                    </div>
-                    <div className="text-sm text-gray-500">{member.role}</div>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {member.department}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                    {member.joinDate}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {member.role}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <button onClick={(e) => handleMenuOpen(e, member)}>
