@@ -6,6 +6,7 @@ from hr.models import Employee
 
 
 
+
 class Customer(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     full_name= models.CharField(max_length=100)

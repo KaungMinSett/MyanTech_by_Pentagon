@@ -50,3 +50,4 @@ def set_deliveries_to_failed(sender, instance, created, **kwargs):
                 Delivery.objects.create(
                     order=delivery.order
                 )
+

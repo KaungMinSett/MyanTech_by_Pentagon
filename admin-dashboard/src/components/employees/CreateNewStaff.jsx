@@ -1,22 +1,23 @@
 import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
-import { addStaff } from "@/redux/features/employees/employeesSlice";
+import { toast } from "react-hot-toast";
+import { createStaff } from "@/redux/features/employees/employeesSlice";
 import { departments, roles } from "@/mocks/employees/staff-data";
 
 const CreateNewStaff = ({ onClose }) => {
   const dispatch = useDispatch();
-  const [isLoading, setIsLoading] = useState(false);
+  const { loading, error: apiError } = useSelector((state) => state.employees);
   const [error, setError] = useState(null);
 
   const [formData, setFormData] = useState({
-    name: "",
+    username: "",
     email: "",
     password: "",
-    role: "",
-    department: "",
+    role: null,
+    department: null,
     status: "Available",
     joinDate: new Date().toISOString().split("T")[0],
   });
@@ -25,19 +26,19 @@ const CreateNewStaff = ({ onClose }) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
-      ...(name === "role" && { department: "" }),
+      [name]:
+        name === "role" || name === "department" ? parseInt(value, 10) : value,
+      ...(name === "role" && { department: null }),
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
-    setIsLoading(true);
 
     try {
       if (
-        !formData.name ||
+        !formData.username ||
         !formData.email ||
         !formData.password ||
         !formData.role ||
@@ -46,12 +47,14 @@ const CreateNewStaff = ({ onClose }) => {
         throw new Error("Please fill in all required fields");
       }
 
-      dispatch(addStaff(formData));
-      onClose();
+      const result = await dispatch(createStaff(formData)).unwrap();
+      if (result) {
+        toast.success("Employee added successfully!");
+        onClose();
+      }
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
+      setError(err.message || "Failed to create staff member");
+      toast.error(err.message || "Failed to create staff member");
     }
   };
 
@@ -66,9 +69,9 @@ const CreateNewStaff = ({ onClose }) => {
 
       <TextField
         fullWidth
-        label="Full Name"
-        name="name"
-        value={formData.name}
+        label="Username"
+        name="username"
+        value={formData.username}
         onChange={handleChange}
         required
         error={!!error && !formData.name}
@@ -98,13 +101,13 @@ const CreateNewStaff = ({ onClose }) => {
         fullWidth
         label="Role"
         name="role"
-        value={formData.role}
+        value={formData.role || ""}
         onChange={handleChange}
         required
         error={!!error && !formData.role}
       >
         {roles.map((role) => (
-          <MenuItem key={role.value} value={role.value}>
+          <MenuItem key={role.id} value={role.id}>
             {role.label}
           </MenuItem>
         ))}
@@ -115,14 +118,14 @@ const CreateNewStaff = ({ onClose }) => {
         fullWidth
         label="Department"
         name="department"
-        value={formData.department}
+        value={formData.department || ""}
         onChange={handleChange}
         required
         disabled={!formData.role}
         error={!!error && !formData.department}
       >
         {filteredDepartments.map((dept) => (
-          <MenuItem key={dept.value} value={dept.value}>
+          <MenuItem key={dept.id} value={dept.id}>
             {dept.label}
           </MenuItem>
         ))}
@@ -133,10 +136,10 @@ const CreateNewStaff = ({ onClose }) => {
         variant="contained"
         color="primary"
         fullWidth
-        disabled={isLoading}
+        disabled={loading}
         sx={{ mt: 2 }}
       >
-        {isLoading ? "Creating..." : "Create Member"}
+        {loading ? "Creating..." : "Create Member"}
       </Button>
     </form>
   );

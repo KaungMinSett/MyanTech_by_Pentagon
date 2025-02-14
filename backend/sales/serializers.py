@@ -8,7 +8,8 @@ from warehouse.models import Product,InventoryList
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
-        fields = ['name']
+        fields = ['name', "latitude", "longitude"]
+        
 class CustomerSerializer(serializers.ModelSerializer):
 
     address = AddressSerializer(many=True)
@@ -26,13 +27,6 @@ class CustomerSerializer(serializers.ModelSerializer):
             Address.objects.create(customer=customer, name=address['name'])
 
         return customer
-
-
-
-    
-
-
-
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product = serializers.PrimaryKeyRelatedField(
@@ -85,6 +79,60 @@ class OrderSerializer(serializers.ModelSerializer):
 
 #         return order
 
+class CreateOrderSerializer(serializers.Serializer):
+    customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())
+    order_type = serializers.ChoiceField(choices=[('website', 'Website'), ('phone', 'Phone')])
+    order_items = OrderItemSerializer(many=True)  
+    phone = serializers.CharField(max_length=15, required=True)
+    address = serializers.CharField(max_length=200, required=True)
+    save_address = serializers.BooleanField(default=False)
+
+    class Meta:
+        model = Order
+        fields = ['customer', 'order_type', 'order_items', 'phone', 'address', 'save_address']
+
+    def create(self, validated_data):
+        customer = validated_data["customer"]
+        order_items_data = validated_data.pop("order_items")
+        phone = validated_data.pop("phone")
+        address_name = validated_data.pop("address")
+        save_address = validated_data.pop("save_address")
+
+        # **STEP 1: Update Customer Phone**
+        customer.phone = phone
+        customer.save(update_fields=["phone"])
+
+        # **STEP 2: Get or Create Address**
+        address, _ = Address.objects.get_or_create(
+            customer=customer,
+            name=address_name,
+            defaults={"latitude": 0.0, "longitude": 0.0},  # Adjust this based on your needs
+        )
+
+        # **STEP 3: Create Order**
+        order = Order.objects.create(customer=customer, address=address, **validated_data)
+
+        # **STEP 4: Process Order Items**
+        for item_data in order_items_data:
+            product_id = item_data.pop("product_id")
+            quantity = item_data.pop("quantity")
+
+            # Find the correct Price entry using the Product ID
+            price = Price.objects.filter(product__id=product_id).first()
+            if not price:
+                raise serializers.ValidationError(f"Price not found for product_id {product_id}")
+
+            # Create OrderItem
+            OrderItem.objects.create(
+                order=order,
+                product=price,  # Link the correct price entry
+                quantity=quantity,
+                unit_price=price.price,  # Save unit price at the time of order
+            )
+
+        return order
+
+
 class OrderSerializer(serializers.ModelSerializer):
     order_items = OrderItemSerializer(many=True)
     
@@ -131,6 +179,19 @@ class OrderLogsSerializer(serializers.ModelSerializer):
         fields= '__all__'
 
 class ProductSerializer(serializers.ModelSerializer):
+    
+    details = serializers.SerializerMethodField()
+    
     class Meta:
         model= Product
         fields = '__all__'
+    
+    def get_details(self, obj):
+        # Get the related InventoryList object for the product
+        inventory_list = InventoryList.objects.filter(product=obj).first()
+        if inventory_list:
+            # Get the related Price object for the InventoryList
+            price = Price.objects.filter(product=inventory_list, is_published=True).first()
+            if price:
+                return PriceSerializer(price).data
+        return None

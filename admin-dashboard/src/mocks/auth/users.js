@@ -1,7 +1,7 @@
 export const mockUsers = [
   {
     id: 1,
-    name: "Admin User",
+    username: "admin",
     email: "admin@myantech.com",
     password: "admin123",
     role: "Manager",
@@ -11,7 +11,7 @@ export const mockUsers = [
   },
   {
     id: 2,
-    name: "HR Manager",
+    username: "hr",
     email: "hr@myantech.com",
     password: "hr123",
     role: "Manager",
@@ -21,7 +21,7 @@ export const mockUsers = [
   },
   {
     id: 3,
-    name: "Warehouse Staff",
+    username: "warehouse",
     email: "warehouse@myantech.com",
     password: "warehouse123",
     role: "Manager",
@@ -31,7 +31,7 @@ export const mockUsers = [
   },
   {
     id: 4,
-    name: "Sales Staff",
+    username: "sales",
     email: "sales@myantech.com",
     password: "sales123",
     role: "Manager",
@@ -41,15 +41,16 @@ export const mockUsers = [
   },
 ];
 
-export const authenticateUser = (email, password) => {
+export const authenticateUser = (username, password) => {
   const user = mockUsers.find(
-    (u) => u.email === email && u.password === password
+    (u) => u.username === username && u.password === password
   );
   if (user) {
     const { password, ...userWithoutPassword } = user;
     return {
       user: userWithoutPassword,
-      token: `mock-jwt-token-${user.id}`,
+      access: `mock-access-token-${user.id}`,
+      refresh: `mock-refresh-token-${user.id}`,
     };
   }
   return null;

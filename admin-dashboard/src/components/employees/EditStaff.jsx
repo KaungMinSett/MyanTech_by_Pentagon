@@ -3,8 +3,9 @@ import { useDispatch } from "react-redux";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
+import { toast } from "react-hot-toast";
 import { departments, roles } from "@/mocks/employees/staff-data";
-import { updateStaff } from "@/redux/features/employees/employeesSlice";
+import { updateStaffAsync } from "@/redux/features/employees/employeesSlice";
 
 export default function EditStaff({ onClose, staffMember, onUpdate }) {
   const dispatch = useDispatch();
@@ -24,11 +25,18 @@ export default function EditStaff({ onClose, staffMember, onUpdate }) {
     }
   }, [staffMember]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(updateStaff(formData));
-    onUpdate(formData);
-    onClose();
+    try {
+      const result = await dispatch(updateStaffAsync(formData)).unwrap();
+      if (result) {
+        toast.success("Employee updated successfully!");
+        onUpdate(result);
+        onClose();
+      }
+    } catch (err) {
+      toast.error(err.message || "Failed to update staff member");
+    }
   };
 
   const handleChange = (e) => {
@@ -74,8 +82,12 @@ export default function EditStaff({ onClose, staffMember, onUpdate }) {
         onChange={handleChange}
         required
       >
-        <MenuItem value="Available">Available</MenuItem>
-        <MenuItem value="Unavailable">Unavailable</MenuItem>
+        <MenuItem key="available" value="Available">
+          Available
+        </MenuItem>
+        <MenuItem key="unavailable" value="Unavailable">
+          Unavailable
+        </MenuItem>
       </TextField>
 
       <TextField
@@ -88,7 +100,7 @@ export default function EditStaff({ onClose, staffMember, onUpdate }) {
         required
       >
         {filteredDepartments.map((dept) => (
-          <MenuItem key={dept.value} value={dept.value}>
+          <MenuItem key={dept.id} value={dept.id}>
             {dept.label}
           </MenuItem>
         ))}
@@ -104,7 +116,7 @@ export default function EditStaff({ onClose, staffMember, onUpdate }) {
         required
       >
         {roles.map((role) => (
-          <MenuItem key={role.value} value={role.value}>
+          <MenuItem key={role.id} value={role.id}>
             {role.label}
           </MenuItem>
         ))}

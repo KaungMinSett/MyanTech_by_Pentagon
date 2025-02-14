@@ -42,7 +42,7 @@ class InventoryList(models.Model):
     warehouse = models.ForeignKey('Warehouse', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=0)
     zone = models.CharField(max_length=50, default='default_zone')
-    class Meta:
+    class Meta: 
         # Ensure a product can only have one entry per warehouse
         unique_together = ('product', 'warehouse', 'zone')
 
