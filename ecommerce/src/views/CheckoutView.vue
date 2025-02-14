@@ -1,31 +1,29 @@
 <template>
-    <div class="w-full lg:w-8/12 mx-auto space-y-8 py-4">
+    <div class="w-full lg:w-8/12 mx-auto space-y-8 py-4 px-2">
+        <!-- {{ location }}
+        {{ phone }}
+        {{ saveAddress }} -->
         <!-- Step 1 - Select a Location -->
         <div class="flex items-start">
-            <!-- Vertical Line -->
-            <div class="relative w-1 bg-primary h-full mr-4">
-                <div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
-            </div>
+
             <!-- Step Content -->
-            <div class="card shadow-lg compact flex-1">
-                <div class="card-body">
+            <div class="  compact flex-1">
+                <div class="">
                     <h2 class="checkout-step-title">Step 1: Select a Location</h2>
                     <div class="step-content">
                         <AddressLocator @location-selected="handleLocationSelected" />
                     </div>
+
                 </div>
             </div>
         </div>
 
         <!-- Step 2 - Enter Phone Number -->
         <div class="flex items-start">
-            <!-- Vertical Line -->
-            <div class="relative w-1 bg-primary h-full mr-4">
-                <div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
-            </div>
+
             <!-- Step Content -->
-            <div class="card shadow-lg compact flex-1">
-                <div class="card-body">
+            <div class="  compact flex-1">
+                <div class="">
                     <h2 class="checkout-step-title">Step 2: Enter Your Phone Number</h2>
                     <div class="step-content">
                         <label class="input validator w-full lg:w-1/2">
@@ -51,22 +49,25 @@
         <!-- Step 3 - Review Your Order -->
         <div class="flex items-start">
             <!-- Step Content -->
-            <div class="card shadow-lg compact flex-1">
-                <div class="card-body">
+            <div class="  compact flex-1">
+                <div class="">
                     <h2 class="checkout-step-title">Step 3: Review Your Order</h2>
                     <div class="step-content">
-                        <div class="flex items-center justify-between p-4 rounded-lg">
-                            <img src="https://via.placeholder.com/80" alt="Item Image" class="w-20 h-20 rounded-lg" />
+
+                        <div v-for="each in cartItems" class="flex items-center justify-between p-4 rounded-lg">
+                            <img :src="'http://127.0.0.1:8000' + each.details.image" alt="Item Image"
+                                class="w-20 h-20 rounded-lg" />
                             <div class="flex-1 ml-4">
-                                <span class="block font-semibold">Product Name</span>
-                                <span class="block text-sm opacity-50">Quantity: 8</span>
+                                <span class="block font-semibold">{{ each.name }}</span>
+                                <span class="block text-sm opacity-50">Quantity: {{ each.quantity }}</span>
                             </div>
-                            <span class="text-lg font-bold">$0.00</span>
+                            <span class="text-lg font-bold">${{ each.details.price }}</span>
                         </div>
+
                         <!-- Add more cart items here if needed -->
                         <div class="mt-4 flex justify-between items-center border-t pt-4">
                             <span class="text-lg font-semibold">Total</span>
-                            <span class="text-lg font-bold">$0.00</span>
+                            <span class="text-lg font-bold">${{ totalPrice.toFixed(2) }}</span>
                         </div>
                     </div>
                 </div>
@@ -75,15 +76,11 @@
 
         <!-- Step 4 - Confirm Order -->
         <div class="flex items-start">
-            <div class="card shadow-lg compact flex-1">
-                <div class="card-body">
+            <div class="  compact flex-1">
+                <div class="">
                     <h2 class="checkout-step-title">Step 4: Confirm Order</h2>
                     <div class="step-content">
-                        <label class="flex items-center space-x-2">
-                            <input v-model="saveAddress" type="checkbox" class="checkbox" />
-                            <span>Save this address for future use</span>
-                        </label>
-                        <button @click="confirmOrder" class="btn w-full mt-4">Confirm Order</button>
+                        <button @click="confirmOrder" class="btn btn-primary w-full mt-4">Confirm Order</button>
                     </div>
                 </div>
             </div>
@@ -92,8 +89,35 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import AddressLocator from '../components/checkout/AddressLocator.vue';
+import { useAppStore } from '../stores/appStore';
+import { useCartStore } from '../stores/cartStore';
+import { useAuthStore } from '../stores/authStore';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+const authStore = useAuthStore();
+const appStore = useAppStore();
+const cartStore = useCartStore();
+// Get cart items with product details
+const cartItems = computed(() => {
+    return cartStore.items.map(cartItem => {
+        const product = appStore.products.find(p => p.id === cartItem.productId);
+        return {
+            ...cartItem,
+            name: product?.name || 'Unknown Product',
+            details: product?.details || { price: 0, image: '' }
+        };
+    });
+});
+
+// Calculate the total price
+const totalPrice = computed(() => {
+    return cartItems.value.reduce((total, item) => {
+        return total + (item.details.price * item.quantity);
+    }, 0);
+});
 
 // State for user data
 const phone = ref('');
@@ -106,19 +130,42 @@ const location = ref({
 // Handle location selection from AddressLocator component
 const handleLocationSelected = (selectedLocation) => {
     location.value = {
-        coordinates: selectedLocation.coordinates,
-        name: selectedLocation.name,
+        ...selectedLocation.coordinates,
+        name: selectedLocation.locationName,
     };
 };
 
+
 // Confirm order handler
-const confirmOrder = () => {
-    const orderData = {
-        phone: phone.value,
-        saveAddress: saveAddress.value,
-        location: location.value,
+const confirmOrder = async () => {
+    if (!phone.value) return;
+    if (!location.value) return;
+    console.log(location.value)
+    location.value = {
+        lat: parseFloat(location.value.lat.toFixed(6)),
+        lng: parseFloat(location.value.lng.toFixed(6)),
+        name: location.value.name.trim(),
     };
-    console.log('Order Data:', orderData);
+    console.log(authStore.user)
+
+    try {
+        await appStore.order(
+            cartItems.value.map(item => ({
+                productId: item.productId,
+                quantity: item.quantity,
+                name: item.name,
+                price: item.details.price,
+            })),
+            phone.value,
+            authStore.user.customer,
+            location.value,
+            saveAddress.value,
+        )
+        cartStore.clearCart();
+        router.push("/")
+    } catch (error) {
+
+    }
     // You can now send this data to your backend or perform further actions
 };
 </script>

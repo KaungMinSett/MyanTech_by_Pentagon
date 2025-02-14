@@ -10,12 +10,6 @@
       <Marker v-if="markerPosition" :options="{ position: markerPosition }" />
     </GoogleMap>
 
-    <!-- Display Coordinates and Location Name -->
-    <div v-if="coordinates">
-      <p>Latitude: {{ coordinates.lat }}</p>
-      <p>Longitude: {{ coordinates.lng }}</p>
-      <p v-if="locationName">Location: {{ locationName }}</p>
-    </div>
   </div>
 </template>
 
@@ -106,7 +100,15 @@ const handleMapClick = (event) => {
 // Initialize Google Places Autocomplete
 const initAutocomplete = () => {
   const input = document.getElementById('autocomplete');
-  if (!input) return;
+  if (!input) {
+    console.error('Autocomplete input element not found');
+    return;
+  }
+
+  if (!window.google || !window.google.maps || !window.google.maps.places) {
+    console.error('Google Maps Places library not loaded');
+    return;
+  }
 
   const autocomplete = new google.maps.places.Autocomplete(input, {
     bounds: new google.maps.LatLngBounds(
@@ -135,18 +137,30 @@ const initAutocomplete = () => {
 
       // Log the selected coordinates
       console.log('Selected Coordinates:', coordinates.value);
+    } else {
+      console.error('Place geometry not found');
     }
   });
 };
 
 // Load Google Maps API and initialize Autocomplete
 onMounted(() => {
+  if (window.google && window.google.maps) {
+    console.warn('Google Maps API already loaded');
+    initAutocomplete();
+    return;
+  }
+
   const script = document.createElement('script');
   script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
   script.async = true;
   script.defer = true;
   script.onload = () => {
+    console.log('Google Maps API loaded');
     initAutocomplete();
+  };
+  script.onerror = () => {
+    console.error('Failed to load Google Maps API');
   };
   document.head.appendChild(script);
 });

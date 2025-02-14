@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @plugin "daisyui" {
-  themes: caramellatte --default, dracula --prefersdark;
+  themes: nord --default, dracula --prefersdark;
 }
 
 /* Hide scrollbar but allow overflow */
@@ -23,5 +23,5 @@ html::-webkit-scrollbar {
 }
 
 .checkout-step-title {
-  @apply text-3xl font-bold mb-2;
+  @apply text-lg md:text-xl lg:text-3xl font-bold mb-2;
 }
