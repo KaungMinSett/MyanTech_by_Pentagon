@@ -21,3 +21,7 @@ html::-webkit-scrollbar {
 .interactive:hover {
   @apply cursor-pointer transition-all ease-in-out duration-500 -translate-y-1; 
 }
+
+.checkout-step-title {
+  @apply text-3xl font-bold mb-2;
+}

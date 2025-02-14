@@ -1,9 +1,40 @@
-import { createSlice, createSelector } from "@reduxjs/toolkit";
+import {
+  createSlice,
+  createSelector,
+  createAsyncThunk,
+} from "@reduxjs/toolkit";
 import { inventoryData } from "@/mocks/warehouse/inventory-data";
 import {
   inboundData,
   outboundData,
 } from "@/mocks/warehouse/inbound-outbound-data";
+import axiosInstance from "@/api/axios";
+
+export const fetchInventory = createAsyncThunk(
+  "warehouse/fetchInventory",
+  async (_, { rejectWithValue }) => {
+    try {
+      try {
+        const response = await axiosInstance.get("/warehouse/api/inventory/");
+        console.log("API Response:", response.data);
+        return response.data;
+      } catch (apiError) {
+        console.log("API Error, falling back to mock data:", apiError);
+        return {
+          warehouses: inventoryData.warehouses,
+          categories: inventoryData.categories,
+          brands: inventoryData.brands,
+          products: inventoryData.products,
+          inventory: inventoryData.inventory,
+        };
+      }
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Failed to fetch inventory"
+      );
+    }
+  }
+);
 
 const initialState = {
   // Data
@@ -38,6 +69,10 @@ const initialState = {
       warehouse: false,
     },
   },
+
+  // Async State
+  loading: false,
+  error: null,
 };
 
 const warehouseSlice = createSlice({
@@ -140,6 +175,25 @@ const warehouseSlice = createSlice({
         descriptionInput: product.description || "",
       };
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchInventory.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchInventory.fulfilled, (state, action) => {
+        state.warehouses = action.payload.warehouses;
+        state.categories = action.payload.categories;
+        state.brands = action.payload.brands;
+        state.products = action.payload.products;
+        state.inventory = action.payload.inventory;
+        state.loading = false;
+      })
+      .addCase(fetchInventory.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
 
