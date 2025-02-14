@@ -6,10 +6,12 @@ from rest_framework.decorators import action
 from rest_framework import viewsets, status
 from sales.models import Price,Order
 from warehouse.models import Product
-from sales.serializers import CustomerSerializer,ProductSerializer,OrderSerializer,OrderItemSerializer,InvoiceSerializer
+from sales.serializers import CreateOrderSerializer, CustomerSerializer,ProductSerializer,OrderSerializer,OrderItemSerializer,InvoiceSerializer
 from django.db import transaction
 from .models import Customer, ReturnRequestItem, ReturnRequest
-from .serializers import ReturnRequestSerializer, ReturnRequestItemSerializer
+from .serializers import ReturnRequestSerializer, ReturnRequestItemSerializer, ConfirmOrderSerializer
+from core.serializers import CustomerOrderSerializer
+
 
 User = get_user_model()
 
@@ -33,12 +35,18 @@ class CustomerLoginView(TokenObtainPairView):
             return Response({'error': 'Employee credentials are not allowed'}, status=403)
 
 class OrderViewSet(viewsets.ModelViewSet):
-    serializer_class = OrderSerializer
+    serializer_class = CustomerOrderSerializer
     #permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         """Ensure customers only see their own orders."""
-        return Order.objects.filter(id=self.request.user.id)
+        customer = Customer.objects.get(user=self.request.user)
+        return Order.objects.filter(customer=customer).prefetch_related("delivery__delivery_group")
+    
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return ConfirmOrderSerializer
+        return super().get_serializer_class()
 
     @action(detail=True, methods=['get'])
     def order_summary(self, request, pk=None):
