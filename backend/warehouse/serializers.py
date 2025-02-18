@@ -19,7 +19,7 @@ class ProductSerializer(serializers.ModelSerializer):
 class WarehouseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Warehouse
-        fields = ['id', 'name', 'address']
+        fields = ['id', 'name', 'name']
 
 class InventoryListSerializer(serializers.ModelSerializer):
     class Meta:
