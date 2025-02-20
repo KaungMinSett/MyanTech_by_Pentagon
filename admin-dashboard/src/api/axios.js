@@ -14,7 +14,7 @@ let isRefreshing = false;
 let failedQueue = [];
 
 const processQueue = (error, token = null) => {
-  failedQueue.forEach(prom => {
+  failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
     } else {
@@ -24,16 +24,10 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-// Add request interceptor for authentication
+// Add request interceptor to include the auth token
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Skip authentication for public routes
-    const publicRoutes = ['/sales/api/orders', '/api/shop/productlist/'];
-    if (publicRoutes.some(route => config.url?.includes(route))) {
-      return config;
-    }
-
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("access_token");
     if (token) {
       config.headers.Authorization = `JWT ${token}`;
     }
@@ -51,8 +45,8 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config;
 
     // Skip token refresh for public routes
-    const publicRoutes = ['/sales/api/orders', '/api/shop/productlist/'];
-    if (publicRoutes.some(route => originalRequest.url?.includes(route))) {
+    const publicRoutes = ["/sales/api/orders", "/api/shop/productlist/"];
+    if (publicRoutes.some((route) => originalRequest.url?.includes(route))) {
       return Promise.reject(error);
     }
 
@@ -61,18 +55,18 @@ axiosInstance.interceptors.response.use(
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then(token => {
+          .then((token) => {
             originalRequest.headers.Authorization = `JWT ${token}`;
             return axiosInstance(originalRequest);
           })
-          .catch(err => Promise.reject(err));
+          .catch((err) => Promise.reject(err));
       }
 
       originalRequest._retry = true;
       isRefreshing = true;
 
       try {
-        const refreshToken = localStorage.getItem("refresh");
+        const refreshToken = localStorage.getItem("refresh_token");
         if (!refreshToken) {
           throw new Error("No refresh token available");
         }
@@ -82,20 +76,22 @@ axiosInstance.interceptors.response.use(
         });
 
         const { access } = response.data;
-        localStorage.setItem("token", access);
-        
-        axiosInstance.defaults.headers.common['Authorization'] = `JWT ${access}`;
+        localStorage.setItem("access_token", access);
+
+        axiosInstance.defaults.headers.common[
+          "Authorization"
+        ] = `JWT ${access}`;
         originalRequest.headers.Authorization = `JWT ${access}`;
-        
+
         processQueue(null, access);
         return axiosInstance(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        localStorage.removeItem("token");
-        localStorage.removeItem("refresh");
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
         localStorage.removeItem("user");
-        
-        if (window.location.pathname !== '/login') {
+
+        if (window.location.pathname !== "/login") {
           window.location.href = "/login";
         }
         return Promise.reject(refreshError);

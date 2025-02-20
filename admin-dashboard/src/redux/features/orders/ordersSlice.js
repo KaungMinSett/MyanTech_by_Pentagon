@@ -236,7 +236,8 @@ export const selectPendingOrders = createSelector(
         !searchQuery ||
         order.customer.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesStatus = order.status !== "Confirmed" && order.status !== "Rejected";
+      const matchesStatus =
+        order.status !== "Confirmed" && order.status !== "Rejected";
 
       if (!dateFilter.startDate || !dateFilter.endDate) {
         return matchesSearch && matchesStatus;
@@ -248,10 +249,7 @@ export const selectPendingOrders = createSelector(
       end.setHours(23, 59, 59);
 
       return (
-        matchesSearch &&
-        matchesStatus &&
-        orderDate >= start &&
-        orderDate <= end
+        matchesSearch && matchesStatus && orderDate >= start && orderDate <= end
       );
     });
   }

@@ -7,8 +7,23 @@ export const fetchUserInfo = createAsyncThunk(
   "auth/fetchUserInfo",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.get("/auth/employees/me/");
-      return response.data;
+      // Get both employee and user info
+      const employeeResponse = await axiosInstance.get("/auth/employees/me/");
+      const usersResponse = await axiosInstance.get("/auth/users/");
+
+      const employee = employeeResponse.data;
+      const user = usersResponse.data.find(
+        (u) => u.username === employee.user.username
+      );
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      return {
+        employee,
+        user,
+      };
     } catch (error) {
       return rejectWithValue(error.message || "Failed to fetch user info");
     }
@@ -101,8 +116,9 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
       .addCase(fetchUserInfo.fulfilled, (state, action) => {
-        state.user = action.payload;
-        localStorage.setItem("user", JSON.stringify(action.payload));
+        state.user = action.payload.user;
+        state.employee = action.payload.employee;
+        state.isAuthenticated = true;
       });
   },
 });

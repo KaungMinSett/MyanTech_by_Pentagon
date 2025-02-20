@@ -37,22 +37,24 @@ export default function StaffList() {
     dispatch(fetchEmployees());
   }, [dispatch]);
 
-  const handleDeleteClick = async (id) => {
-    try {
-      const result = await dispatch(deleteStaffAsync(id)).unwrap();
-      if (result) {
-        toast.success("Employee deleted successfully!");
-        handleMenuClose();
-      }
-    } catch (err) {
-      toast.error(err || "Failed to delete employee");
-      handleMenuClose();
-    }
+  const handleDeleteClick = () => {
+    setDeleteModalOpen(true);
+    handleMenuClose();
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (selectedMember) {
-      dispatch(deleteStaffAsync(selectedMember.id));
+      try {
+        const result = await dispatch(
+          deleteStaffAsync(selectedMember.id)
+        ).unwrap();
+        if (result) {
+          toast.success("Employee deleted successfully!");
+          dispatch(fetchEmployees());
+        }
+      } catch (err) {
+        toast.error(err?.detail || "Failed to delete employee");
+      }
     }
     setDeleteModalOpen(false);
   };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Package2, Check, X } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import Button from "@mui/material/Button";
@@ -7,7 +7,10 @@ import {
   approveInboundOrder,
   rejectInboundOrder,
   selectPendingInboundOrders,
+  fetchInboundOrders,
+  fetchProducts,
 } from "@/redux/features/warehouse/warehouseSlice";
+import { toast } from "react-hot-toast";
 
 export default function ConfirmProducts() {
   const dispatch = useDispatch();
@@ -19,6 +22,18 @@ export default function ConfirmProducts() {
 
   const pendingItems = useSelector(selectPendingInboundOrders);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await dispatch(fetchProducts()).unwrap();
+        await dispatch(fetchInboundOrders()).unwrap();
+      } catch (error) {
+        toast.error("Failed to fetch pending items");
+      }
+    };
+    fetchData();
+  }, [dispatch]);
+
   const handleSelectItem = (itemId) => {
     setSelectedItems((prev) => {
       if (prev.includes(itemId)) {
@@ -28,29 +43,33 @@ export default function ConfirmProducts() {
     });
   };
 
-  const handleAction = (action) => {
+  const handleAction = async (action) => {
     const count = selectedItems.length;
-    selectedItems.forEach((itemId) => {
-      if (action === "confirm") {
-        dispatch(approveInboundOrder({ orderId: itemId }));
-      } else {
-        dispatch(rejectInboundOrder({ orderId: itemId }));
+    try {
+      for (const itemId of selectedItems) {
+        if (action === "confirm") {
+          await dispatch(approveInboundOrder({ orderId: itemId })).unwrap();
+        } else {
+          await dispatch(rejectInboundOrder({ orderId: itemId })).unwrap();
+        }
       }
-    });
-    setSelectedItems([]);
-    setActionType(action);
-    setModalMessage(
-      `${count} item${count !== 1 ? "s" : ""} have been ${
-        action === "confirm" ? "approved and added to inventory" : "declined"
-      }.`
-    );
-    setShowActionModal(false);
-    setShowResultModal(true);
+
+      setSelectedItems([]);
+      setActionType(action);
+      setModalMessage(
+        `${count} item${count !== 1 ? "s" : ""} have been ${
+          action === "confirm" ? "approved and added to inventory" : "declined"
+        }.`
+      );
+      setShowActionModal(false);
+      setShowResultModal(true);
+    } catch (error) {
+      toast.error("Failed to process items: " + error.message);
+    }
   };
 
   return (
     <div className="space-y-6">
-
       <div className="bg-white shadow rounded-lg overflow-hidden relative">
         <div className="max-h-[calc(100vh-180px)] overflow-y-auto">
           <table className="min-w-full divide-y divide-gray-200">

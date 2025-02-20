@@ -1,26 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import MenuItem from "@mui/material/MenuItem";
 import { toast } from "react-hot-toast";
-import { createStaff } from "@/redux/features/employees/employeesSlice";
-import { departments, roles } from "@/mocks/employees/staff-data";
+import {
+  createStaff,
+  fetchRoles,
+  fetchDepartments,
+  deleteStaffAsync,
+  fetchEmployees,
+} from "@/redux/features/employees/employeesSlice";
+
+const INITIAL_FORM_STATE = {
+  username: "",
+  email: "",
+  password: "",
+  role: null,
+  department: null,
+  status: "Available",
+  joinDate: new Date().toISOString().split("T")[0],
+};
 
 const CreateNewStaff = ({ onClose }) => {
   const dispatch = useDispatch();
-  const { loading, error: apiError } = useSelector((state) => state.employees);
+  const {
+    loading,
+    error: apiError,
+    roles,
+    departments,
+  } = useSelector((state) => state.employees);
   const [error, setError] = useState(null);
+  const [formData, setFormData] = useState(INITIAL_FORM_STATE);
 
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-    role: null,
-    department: null,
-    status: "Available",
-    joinDate: new Date().toISOString().split("T")[0],
-  });
+  useEffect(() => {
+    dispatch(fetchRoles());
+    dispatch(fetchDepartments());
+  }, [dispatch]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -37,31 +53,38 @@ const CreateNewStaff = ({ onClose }) => {
     setError(null);
 
     try {
-      if (
-        !formData.username ||
-        !formData.email ||
-        !formData.password ||
-        !formData.role ||
-        !formData.department
-      ) {
+      if (Object.values(formData).some((value) => !value && value !== 0)) {
         throw new Error("Please fill in all required fields");
       }
 
-      const result = await dispatch(createStaff(formData)).unwrap();
-      if (result) {
+      await dispatch(createStaff(formData)).unwrap();
+      toast.success("Employee added successfully!");
+      onClose();
+    } catch (err) {
+      if (err.name === "Error") {
+        setError(err.message);
+        toast.error(err.message);
+      } else {
+        dispatch(fetchEmployees());
         toast.success("Employee added successfully!");
         onClose();
       }
-    } catch (err) {
-      setError(err.message || "Failed to create staff member");
-      toast.error(err.message || "Failed to create staff member");
     }
   };
 
-  // Filter out Admin from departments
-  const filteredDepartments = departments.filter(
-    (dept) => dept.value !== "Admin"
-  );
+  const handleDeleteClick = async (id) => {
+    try {
+      const result = await dispatch(deleteStaffAsync(id)).unwrap();
+      if (result) {
+        toast.success("Employee deleted successfully!");
+        onClose();
+        dispatch(fetchEmployees());
+      }
+    } catch (err) {
+      toast.error(err || "Failed to delete employee");
+      onClose();
+    }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -74,7 +97,7 @@ const CreateNewStaff = ({ onClose }) => {
         value={formData.username}
         onChange={handleChange}
         required
-        error={!!error && !formData.name}
+        error={!!error && !formData.username}
       />
       <TextField
         fullWidth
@@ -108,7 +131,7 @@ const CreateNewStaff = ({ onClose }) => {
       >
         {roles.map((role) => (
           <MenuItem key={role.id} value={role.id}>
-            {role.label}
+            {role.name}
           </MenuItem>
         ))}
       </TextField>
@@ -124,9 +147,9 @@ const CreateNewStaff = ({ onClose }) => {
         disabled={!formData.role}
         error={!!error && !formData.department}
       >
-        {filteredDepartments.map((dept) => (
+        {departments.map((dept) => (
           <MenuItem key={dept.id} value={dept.id}>
-            {dept.label}
+            {dept.name}
           </MenuItem>
         ))}
       </TextField>

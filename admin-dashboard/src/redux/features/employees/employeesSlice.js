@@ -1,32 +1,24 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { initialStaffMembers, departments } from "@/mocks/employees/staff-data";
 import axiosInstance from "@/api/axios";
 
 export const fetchEmployees = createAsyncThunk(
   "employees/fetchEmployees",
   async (_, { rejectWithValue }) => {
     try {
-      try {
-        const response = await axiosInstance.get("/hr/employees/");
-        console.log("API Response:", response.data);
+      const response = await axiosInstance.get("/hr/employees/");
 
-        const transformedData = response.data.map((employee) => ({
-          id: employee.id,
-          name: employee.user.username,
-          email: employee.user.email,
-          role: employee.role,
-          department: employee.department,
-          status: employee.status || "Available",
-          joinDate: employee.created_at,
-        }));
+      const transformedData = response.data.map((employee) => ({
+        id: employee.id,
+        name: employee.user.username,
+        email: employee.user.email,
+        role: employee.role,
+        department: employee.department,
+        status: employee.status || "Available",
+        joinDate: employee.created_at,
+      }));
 
-        return transformedData;
-      } catch (apiError) {
-        console.log("API Error, falling back to mock data:", apiError);
-        return initialStaffMembers;
-      }
+      return transformedData;
     } catch (error) {
-      console.error("Error details:", error);
       return rejectWithValue(
         error.response?.data || "Failed to fetch employees"
       );
@@ -34,44 +26,82 @@ export const fetchEmployees = createAsyncThunk(
   }
 );
 
+export const fetchRoles = createAsyncThunk(
+  "employees/fetchRoles",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get("/hr/roles/");
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.detail || "Failed to fetch roles"
+      );
+    }
+  }
+);
+
+export const fetchDepartments = createAsyncThunk(
+  "employees/fetchDepartments",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get("/hr/departments/");
+      // Remove duplicates based on department name
+      const uniqueDepartments = Array.from(
+        new Map(response.data.map((item) => [item.name, item])).values()
+      );
+      return uniqueDepartments;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.detail || "Failed to fetch departments"
+      );
+    }
+  }
+);
+
 export const createStaff = createAsyncThunk(
   "employees/createStaff",
-  async (staffData, { rejectWithValue }) => {
+  async (staffData, { rejectWithValue, dispatch }) => {
     try {
-      try {
-        const response = await axiosInstance.post("/hr/employees/", staffData);
-        console.log("API Response:", response.data);
-        return response.data;
-      } catch (apiError) {
-        console.log("API Error, falling back to mock data:", apiError);
+      const formattedData = {
+        username: staffData.username.trim(),
+        email: staffData.email.trim(),
+        password: staffData.password,
+        role: staffData.role,
+        department: staffData.department,
+        status: staffData.status || "Available",
+      };
 
-        const maxId = Math.max(
-          ...initialStaffMembers.map((staff) => staff.id),
-          0
-        );
-
-        const mockResult = {
-          id: maxId + 1,
-          name: staffData.username,
-          email: staffData.email,
-          password: staffData.password,
-          role: staffData.role === 1 ? "Manager" : "Staff",
-          department: departments.find((d) => d.id === staffData.department)
-            ?.label,
-          joinDate: staffData.joinDate,
-          status: staffData.status,
-        };
-
-        console.log("Created mock staff:", mockResult);
-        return mockResult;
-      }
-    } catch (error) {
-      console.error("Error details:", error);
-      return rejectWithValue(
-        error.response?.data?.detail ||
-          error.response?.data ||
-          "Failed to create staff"
+      const response = await axiosInstance.post(
+        "/hr/employees/",
+        formattedData
       );
+      await dispatch(fetchEmployees());
+
+      return {
+        id: response.data.id,
+        name: response.data.user.username,
+        email: response.data.user.email,
+        role: response.data.role,
+        department: response.data.department,
+        status: response.data.status,
+        joinDate: response.data.created_at,
+      };
+    } catch (error) {
+      if (error.response?.status === 201 || error.response?.status === 200) {
+        await dispatch(fetchEmployees());
+        return {};
+      }
+
+      const errorData = error.response?.data;
+      if (errorData?.username)
+        return rejectWithValue("Username is already taken");
+      if (errorData?.email) return rejectWithValue("Email is already in use");
+      if (errorData?.role) return rejectWithValue("Invalid role selected");
+      if (errorData?.department)
+        return rejectWithValue("Invalid department selected");
+      if (errorData?.password) return rejectWithValue("Password is required");
+
+      throw error;
     }
   }
 );
@@ -80,23 +110,27 @@ export const updateStaffAsync = createAsyncThunk(
   "employees/updateStaff",
   async (staffData, { rejectWithValue }) => {
     try {
+      // Format the data according to the API's expected structure
+      const formattedData = {
+        user: {
+          username: staffData.name,
+          email: staffData.email,
+          id: staffData.userId, // Add the user ID to identify the existing user
+        },
+        role: Number(staffData.role),
+        department: Number(staffData.department),
+        status: staffData.status || "Available",
+      };
+
       const response = await axiosInstance.put(
         `/hr/employees/${staffData.id}/`,
-        {
-          user: {
-            username: staffData.name,
-            email: staffData.email,
-          },
-          role: staffData.role,
-          department: staffData.department,
-          status: staffData.status,
-        }
+        formattedData
       );
 
       if (response.data) {
-        // Transform the response data to match your frontend structure
-        const transformedData = {
+        return {
           id: response.data.id,
+          userId: response.data.user.id,
           name: response.data.user.username,
           email: response.data.user.email,
           role: response.data.role,
@@ -104,10 +138,21 @@ export const updateStaffAsync = createAsyncThunk(
           status: response.data.status,
           joinDate: response.data.created_at,
         };
-        return transformedData;
       }
       return rejectWithValue("Failed to update employee");
     } catch (error) {
+      console.error("Update error:", error.response?.data);
+      if (error.response?.data?.user?.email) {
+        // If it's an email error, but we're updating the same user, ignore it
+        if (
+          error.response.data.user.email[0] ===
+          "user with this email already exists."
+        ) {
+          return rejectWithValue(
+            "Cannot update: Email already exists for another user"
+          );
+        }
+      }
       return rejectWithValue(
         error.response?.data?.detail || "Failed to update employee"
       );
@@ -119,15 +164,10 @@ export const deleteStaffAsync = createAsyncThunk(
   "employees/deleteStaff",
   async (staffId, { rejectWithValue }) => {
     try {
-      const response = await axiosInstance.delete(`/hr/employees/${staffId}/`);
-      if (response.status === 204) {
-        return staffId;
-      }
-      return rejectWithValue("Failed to delete employee");
+      await axiosInstance.delete(`/hr/employees/${staffId}/`);
+      return staffId;
     } catch (error) {
-      if (error.status === 404) {
-        return rejectWithValue("Employee not found");
-      }
+      console.error("Delete error:", error.response?.data);
       return rejectWithValue(
         error.response?.data?.detail || "Failed to delete employee"
       );
@@ -139,6 +179,8 @@ const employeesSlice = createSlice({
   name: "employees",
   initialState: {
     staffMembers: [],
+    roles: [],
+    departments: [],
     selectedStaff: null,
     filter: "",
     searchQuery: "",
@@ -196,6 +238,12 @@ const employeesSlice = createSlice({
       .addCase(fetchEmployees.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(fetchRoles.fulfilled, (state, action) => {
+        state.roles = action.payload;
+      })
+      .addCase(fetchDepartments.fulfilled, (state, action) => {
+        state.departments = action.payload;
       })
       .addCase(createStaff.pending, (state) => {
         state.loading = true;

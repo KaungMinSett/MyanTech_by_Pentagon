@@ -1,26 +1,44 @@
+import { useEffect } from "react";
 import { Button } from "@radix-ui/themes";
 import toast, { Toaster } from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  setFormField,
   setDropdownVisibility,
   resetForm,
   setSelectedProductForm,
+  setSelectedWarehouse,
+  setQuantity,
   createInboundOrder,
-  setSelectedItem,
+  fetchProducts,
+  fetchInboundOrders,
 } from "@/redux/features/warehouse/warehouseSlice";
+import { toastConfig } from "@/styles/toast";
 
 export default function ProductForm() {
   const dispatch = useDispatch();
-  const { products, warehouses, brands, categories } = useSelector(
+  const { products, warehouses, loading } = useSelector(
     (state) => state.warehouse
   );
   const form = useSelector((state) => state.warehouse.form);
-  const user = useSelector((state) => state.auth.user);
 
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(form.productInput.toLowerCase())
   );
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        await Promise.all([
+          dispatch(fetchProducts()),
+          dispatch(fetchInboundOrders()),
+        ]);
+      } catch (error) {
+        console.error("Error fetching initial data:", error);
+        toast.error("Failed to fetch initial data");
+      }
+    };
+    fetchInitialData();
+  }, [dispatch]);
 
   const handleDropdownBlur = (dropdown) => {
     setTimeout(
@@ -29,299 +47,150 @@ export default function ProductForm() {
     );
   };
 
-  const handleInputChange = (field, value) => {
-    dispatch(setFormField({ field, value }));
-  };
-
-  const handleSave = () => {
-    if (
-      !form.product ||
-      !form.category ||
-      !form.brand ||
-      !form.warehouse ||
-      !form.quantity
-    ) {
-      toast.error("Please fill in all required fields");
+  const handleSave = async () => {
+    if (!form.product || !form.warehouse || !form.quantity) {
+      toast.error("Please fill in all required fields", toastConfig);
       return;
     }
 
-    const newInboundOrder = {
-      product: {
-        id: form.product.id,
-        name: form.product.name,
-        sku: form.product.sku,
-        category: {
-          id: form.category.id,
-          name: form.category.name,
-        },
-        brand: {
-          id: form.brand.id,
-          name: form.brand.name,
-        },
-      },
-      warehouse: {
-        id: form.warehouse.id,
-        name: form.warehouse.name,
-      },
-      quantity: parseInt(form.quantity),
-      created_by: {
-        id: 1, // Using mock user ID
-        name: "Mock User", // Using mock user name
-      },
-    };
+    try {
+      const inboundOrder = {
+        product: form.product.id,
+        warehouse: form.warehouse.id,
+        quantity: parseInt(form.quantity),
+        status: "pending",
+      };
 
-    dispatch(createInboundOrder(newInboundOrder));
-    toast.success("Product submitted for approval!");
-    dispatch(resetForm());
+      await dispatch(createInboundOrder(inboundOrder)).unwrap();
+      await dispatch(fetchInboundOrders());
+      dispatch(resetForm());
+      toast.success("Inbound order created successfully!", toastConfig);
+    } catch (error) {
+      const errorMessage =
+        typeof error === "string"
+          ? error
+          : error?.detail || "Failed to create inbound order";
+      toast.error(errorMessage, toastConfig);
+    }
   };
+
+  const renderProductInput = () => (
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-0">
+        Product Name
+      </label>
+      <div className="relative">
+        <input
+          className="w-full border border-gray-300 rounded-md shadow-sm p-2.5 text-sm"
+          placeholder="Type product name"
+          value={form.productInput}
+          onChange={(e) =>
+            dispatch(setSelectedProductForm({ name: e.target.value }))
+          }
+          onFocus={() =>
+            dispatch(
+              setDropdownVisibility({ dropdown: "product", isVisible: true })
+            )
+          }
+          onBlur={() => handleDropdownBlur("product")}
+        />
+        {form.showDropdowns.product && filteredProducts.length > 0 && (
+          <div className="absolute w-full border rounded-md mt-1 bg-white max-h-40 overflow-auto z-10 shadow-lg">
+            {filteredProducts.map((p) => (
+              <div
+                key={p.id}
+                className="p-2.5 hover:bg-gray-100 cursor-pointer text-sm"
+                onMouseDown={() => dispatch(setSelectedProductForm(p))}
+              >
+                {p.name}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   return (
     <div className="mt-2 max-w-2xl mx-auto">
       <div className="bg-white shadow rounded-lg">
         <div className="p-6 space-y-6">
           <Toaster />
-
           <div className="space-y-6">
-            {/* Product Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-0">
-                Product Name
-              </label>
-              <div className="relative">
+            {renderProductInput()}
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Category
+                </label>
                 <input
-                  className="w-full border border-gray-300 rounded-md shadow-sm p-2.5 text-sm"
-                  placeholder="Type product name"
-                  value={form.productInput}
-                  onChange={(e) =>
-                    handleInputChange("productInput", e.target.value)
-                  }
-                  onFocus={() =>
-                    dispatch(
-                      setDropdownVisibility({
-                        dropdown: "product",
-                        isVisible: true,
-                      })
-                    )
-                  }
-                  onBlur={() => handleDropdownBlur("product")}
+                  className="w-full border border-gray-300 rounded-md shadow-sm p-2.5 text-sm bg-gray-50"
+                  value={form.category?.name || ""}
+                  disabled
                 />
-                {form.showDropdowns.product && filteredProducts.length > 0 && (
-                  <div className="absolute w-full border rounded-md mt-1 bg-white max-h-40 overflow-auto z-10 shadow-lg">
-                    {filteredProducts.map((p) => (
-                      <div
-                        key={p.id}
-                        className="p-2.5 hover:bg-gray-100 cursor-pointer text-sm"
-                        onMouseDown={() => {
-                          dispatch(setSelectedProductForm(p));
-                          dispatch(
-                            setDropdownVisibility({
-                              dropdown: "product",
-                              isVisible: false,
-                            })
-                          );
-                        }}
-                      >
-                        {p.name}
-                      </div>
-                    ))}
-                  </div>
-                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Brand
+                </label>
+                <input
+                  className="w-full border border-gray-300 rounded-md shadow-sm p-2.5 text-sm bg-gray-50"
+                  value={form.brand?.name || ""}
+                  disabled
+                />
               </div>
             </div>
 
-            {/* Category Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-0">
-                Category
-              </label>
-              <div className="relative">
-                <input
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Warehouse
+                </label>
+                <select
                   className="w-full border border-gray-300 rounded-md shadow-sm p-2.5 text-sm"
-                  value={form.categoryInput}
-                  onChange={(e) =>
-                    handleInputChange("categoryInput", e.target.value)
-                  }
-                  onFocus={() =>
-                    dispatch(
-                      setDropdownVisibility({
-                        dropdown: "category",
-                        isVisible: true,
-                      })
-                    )
-                  }
-                  onBlur={() => handleDropdownBlur("category")}
-                  placeholder="Select or type category"
-                />
-                {form.showDropdowns.category && (
-                  <div className="absolute w-full border rounded-md mt-1 bg-white max-h-40 overflow-auto z-10 shadow-lg">
-                    {categories.map((category) => (
-                      <div
-                        key={category.id}
-                        className="p-2.5 hover:bg-gray-100 cursor-pointer text-sm"
-                        onMouseDown={() => {
-                          dispatch(
-                            setSelectedItem({
-                              type: "category",
-                              item: category,
-                            })
-                          );
-                          dispatch(
-                            setDropdownVisibility({
-                              dropdown: "category",
-                              isVisible: false,
-                            })
-                          );
-                        }}
-                      >
-                        {category.name}
-                      </div>
-                    ))}
-                  </div>
-                )}
+                  value={form.warehouse?.id || ""}
+                  onChange={(e) => {
+                    const selectedWarehouse = warehouses.find(
+                      (w) => w.id === Number(e.target.value)
+                    );
+                    if (selectedWarehouse) {
+                      dispatch(setSelectedWarehouse(selectedWarehouse));
+                    }
+                  }}
+                >
+                  <option value="">Select Warehouse</option>
+                  {warehouses.map((warehouse) => (
+                    <option key={warehouse.id} value={warehouse.id}>
+                      {warehouse.name}
+                    </option>
+                  ))}
+                </select>
               </div>
-            </div>
 
-            {/* Brand Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-0">
-                Brand
-              </label>
-              <div className="relative">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Quantity
+                </label>
                 <input
+                  type="number"
+                  min="1"
                   className="w-full border border-gray-300 rounded-md shadow-sm p-2.5 text-sm"
-                  value={form.brandInput}
-                  onChange={(e) =>
-                    handleInputChange("brandInput", e.target.value)
-                  }
-                  onFocus={() =>
-                    dispatch(
-                      setDropdownVisibility({
-                        dropdown: "brand",
-                        isVisible: true,
-                      })
-                    )
-                  }
-                  onBlur={() => handleDropdownBlur("brand")}
-                  placeholder="Select or type brand"
+                  value={form.quantity}
+                  onChange={(e) => dispatch(setQuantity(e.target.value))}
+                  placeholder="Enter quantity"
                 />
-                {form.showDropdowns.brand && (
-                  <div className="absolute w-full border rounded-md mt-1 bg-white max-h-40 overflow-auto z-10 shadow-lg">
-                    {brands.map((brand) => (
-                      <div
-                        key={brand.id}
-                        className="p-2.5 hover:bg-gray-100 cursor-pointer text-sm"
-                        onMouseDown={() => {
-                          dispatch(
-                            setSelectedItem({
-                              type: "brand",
-                              item: brand,
-                            })
-                          );
-                          dispatch(
-                            setDropdownVisibility({
-                              dropdown: "brand",
-                              isVisible: false,
-                            })
-                          );
-                        }}
-                      >
-                        {brand.name}
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
-            </div>
-
-            {/* Warehouse Input */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-0">
-                Warehouse
-              </label>
-              <div className="relative">
-                <input
-                  className="w-full border border-gray-300 rounded-md shadow-sm p-2.5 text-sm"
-                  value={form.warehouseInput}
-                  onChange={(e) =>
-                    handleInputChange("warehouseInput", e.target.value)
-                  }
-                  onFocus={() =>
-                    dispatch(
-                      setDropdownVisibility({
-                        dropdown: "warehouse",
-                        isVisible: true,
-                      })
-                    )
-                  }
-                  onBlur={() => handleDropdownBlur("warehouse")}
-                  placeholder="Select warehouse"
-                />
-                {form.showDropdowns.warehouse && (
-                  <div className="absolute w-full border rounded-md mt-1 bg-white max-h-40 overflow-auto z-10 shadow-lg">
-                    {warehouses.map((warehouse) => (
-                      <div
-                        key={warehouse.id}
-                        className="p-2.5 hover:bg-gray-100 cursor-pointer text-sm"
-                        onMouseDown={() => {
-                          dispatch(
-                            setSelectedItem({
-                              type: "warehouse",
-                              item: warehouse,
-                            })
-                          );
-                          dispatch(
-                            setDropdownVisibility({
-                              dropdown: "warehouse",
-                              isVisible: false,
-                            })
-                          );
-                        }}
-                      >
-                        {warehouse.name}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-0">
-                Description
-              </label>
-              <textarea
-                className="w-full border border-gray-300 rounded-md shadow-sm p-2.5 text-sm min-h-[80px]"
-                value={form.descriptionInput}
-                onChange={(e) =>
-                  handleInputChange("descriptionInput", e.target.value)
-                }
-                placeholder="Enter product description"
-              />
-            </div>
-
-            {/* Quantity */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-0">
-                Quantity
-              </label>
-              <input
-                className="w-full border border-gray-300 rounded-md shadow-sm p-2.5 text-sm"
-                type="number"
-                value={form.quantity}
-                onChange={(e) => handleInputChange("quantity", e.target.value)}
-                placeholder="Enter quantity"
-              />
             </div>
           </div>
 
-          {/* Save Button */}
-          <div className="flex justify-center pt-1">
+          <div className="flex justify-end">
             <Button
               onClick={handleSave}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              disabled={loading}
+              className="bg-blue-600 text-white px-4 py-2 rounded-md"
             >
-              Save Changes
+              {loading ? "Saving..." : "Create Inbound Order"}
             </Button>
           </div>
         </div>
