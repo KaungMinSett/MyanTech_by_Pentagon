@@ -1,29 +1,38 @@
-import { useState, useCallback, useEffect } from "react";
-import { MoreVertical } from "lucide-react";
-import { Modal } from "../../components/modal/modal";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import axiosInstance from "@/api/axios";
-import { toast } from "react-hot-toast";
-import CircularProgress from "@mui/material/CircularProgress";
+import { useState, useEffect } from "react";
+import { Search } from "lucide-react";
+import TextField from "@mui/material/TextField";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import CircularProgress from "@mui/material/CircularProgress";
+import axiosInstance from "@/api/axios";
+import { toast } from "react-hot-toast";
+
+const TABLE_HEADERS = [
+  { id: "no", label: "No", width: "w-[5%]" },
+  { id: "image", label: "Image", width: "w-[10%]" },
+  { id: "product", label: "Product", width: "w-[15%]" },
+  { id: "description", label: "Description", width: "w-[30%]" },
+  { id: "category", label: "Category", width: "w-[10%]" },
+  { id: "brand", label: "Brand", width: "w-[10%]" },
+  { id: "price", label: "Price", width: "w-[10%]" },
+  { id: "status", label: "Status", width: "w-[10%]" },
+];
 
 export default function ProductList() {
+  // State Management
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [brandFilter, setBrandFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
-  const [anchorEl, setAnchorEl] = useState(null);
 
+  // Data Fetching
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -47,75 +56,25 @@ export default function ProductList() {
     fetchData();
   }, []);
 
-  const handleEdit = () => {
-    setEditModalOpen(true);
-    handleMenuClose();
-  };
+  // Filtering Logic
+  const filteredProducts = products.filter((product) => {
+    const searchMatch = product.name
+      .toLowerCase()
+      .includes(search.toLowerCase());
+    const categoryMatch =
+      !categoryFilter || product.category === parseInt(categoryFilter);
+    const brandMatch = !brandFilter || product.brand === parseInt(brandFilter);
+    return searchMatch && categoryMatch && brandMatch;
+  });
 
-  const handleDelete = async () => {
-    try {
-      await axiosInstance.delete(
-        `/api/shop/productlist/${selectedProduct.id}/`
-      );
-      setProducts(
-        products.filter((product) => product.id !== selectedProduct.id)
-      );
-      toast.success("Product deleted successfully");
-    } catch (error) {
-      console.error("Failed to delete product:", error);
-      toast.error("Failed to delete product");
-    }
-    handleMenuClose();
-  };
-
-  const handleUpdate = async () => {
-    try {
-      const response = await axiosInstance.put(
-        `/api/shop/productlist/${selectedProduct.id}/`,
-        {
-          name: selectedProduct.name,
-          details: {
-            ...selectedProduct.details,
-            price: selectedProduct.details.price,
-          },
-        }
-      );
-      setProducts(
-        products.map((product) =>
-          product.id === selectedProduct.id ? response.data : product
-        )
-      );
-      toast.success("Product updated successfully");
-      setEditModalOpen(false);
-    } catch (error) {
-      console.error("Failed to update product:", error);
-      toast.error("Failed to update product");
-    }
-  };
-
-  const handleMenuOpen = useCallback((event, product) => {
-    event.stopPropagation();
-    setAnchorEl(event.currentTarget);
-    setSelectedProduct(product);
-  }, []);
-
-  const handleMenuClose = useCallback(() => {
-    setAnchorEl(null);
-  }, []);
-
-  const filteredProducts = products.filter(
-    (product) =>
-      product.name.toLowerCase().includes(search.toLowerCase()) &&
-      (categoryFilter ? product.category === parseInt(categoryFilter) : true) &&
-      (brandFilter ? product.brand === parseInt(brandFilter) : true)
-  );
-
+  // Pagination Logic
   const paginatedProducts = filteredProducts.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
+  // Loading State
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -124,26 +83,36 @@ export default function ProductList() {
     );
   }
 
+  // Render Component
   return (
-    <div className="max-w-7xl mx-auto p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="space-y-6">
+      {/* Search and Filters */}
+      <div className="flex items-center justify-between">
+        <TextField
+          size="small"
+          placeholder="Search products..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          InputProps={{
+            startAdornment: <Search className="w-4 h-4 text-gray-400 mr-2" />,
+          }}
+          sx={{
+            width: "300px",
+            "& .MuiInputBase-root": {
+              height: "32px",
+              fontSize: "14px",
+            },
+          }}
+        />
         <div className="flex gap-4">
-          <input
-            type="text"
-            placeholder="Search..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="border p-2 rounded w-60"
-          />
-
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <InputLabel>Category</InputLabel>
             <Select
               value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
               label="Category"
+              onChange={(e) => setCategoryFilter(e.target.value)}
             >
-              <MenuItem value="">All Categories</MenuItem>
+              <MenuItem value="">All</MenuItem>
               {categories.map((category) => (
                 <MenuItem key={category.id} value={category.id}>
                   {category.name}
@@ -151,15 +120,14 @@ export default function ProductList() {
               ))}
             </Select>
           </FormControl>
-
           <FormControl size="small" sx={{ minWidth: 120 }}>
             <InputLabel>Brand</InputLabel>
             <Select
               value={brandFilter}
-              onChange={(e) => setBrandFilter(e.target.value)}
               label="Brand"
+              onChange={(e) => setBrandFilter(e.target.value)}
             >
-              <MenuItem value="">All Brands</MenuItem>
+              <MenuItem value="">All</MenuItem>
               {brands.map((brand) => (
                 <MenuItem key={brand.id} value={brand.id}>
                   {brand.name}
@@ -170,69 +138,97 @@ export default function ProductList() {
         </div>
       </div>
 
-      <div className="bg-white border rounded-lg overflow-hidden">
-        <table className="w-full border-collapse table-fixed">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ID
-              </th>
-              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Image
-              </th>
-              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Product
-              </th>
-              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Category
-              </th>
-              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Brand
-              </th>
-              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Price
-              </th>
-              <th className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {paginatedProducts.map((product) => (
-              <tr key={product.id} className="border-t hover:bg-gray-50">
-                <td className="p-4 text-sm text-gray-500">{product.id}</td>
-                <td className="p-4">
-                  <img
-                    src={`${import.meta.env.VITE_API_URL}${
-                      product.details.image
-                    }`}
-                    alt={product.name}
-                    className="w-12 h-12 object-cover rounded"
-                  />
-                </td>
-                <td className="p-4 text-sm text-gray-500">{product.name}</td>
-                <td className="p-4 text-sm text-gray-500">
-                  {categories.find((c) => c.id === product.category)?.name ||
-                    product.category}
-                </td>
-                <td className="p-4 text-sm text-gray-500">
-                  {brands.find((b) => b.id === product.brand)?.name ||
-                    product.brand}
-                </td>
-                <td className="p-4 text-sm text-gray-500">
-                  ${product.details.price}
-                </td>
-                <td className="p-4">
-                  <button onClick={(e) => handleMenuOpen(e, product)}>
-                    <MoreVertical className="w-5 h-4 text-gray-600" />
-                  </button>
-                </td>
+      {/* Product Table */}
+      <div className="bg-white shadow rounded-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                {TABLE_HEADERS.map((header) => (
+                  <th
+                    key={header.id}
+                    className={`px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider ${header.width}`}
+                  >
+                    {header.label}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {paginatedProducts.map((product, index) => {
+                const category = categories.find(
+                  (c) => c.id === product.category
+                );
+                const brand = brands.find((b) => b.id === product.brand);
+
+                return (
+                  <tr key={product.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                      {index + 1}
+                    </td>
+                    <td className="px-6 py-4 flex justify-center">
+                      {product.details?.image ? (
+                        <img
+                          src={`${import.meta.env.VITE_API_URL}${
+                            product.details.image
+                          }`}
+                          alt={product.name}
+                          className="w-16 h-16 rounded-lg object-cover"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src =
+                              "https://placehold.co/64x64?text=No+Image";
+                          }}
+                        />
+                      ) : (
+                        <div className="w-16 h-16 rounded-lg bg-gray-100 flex items-center justify-center">
+                          <span className="text-gray-400 text-xs">
+                            No image
+                          </span>
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">
+                        {product.name}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-500 line-clamp-2">
+                        {product.description || "No description available"}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                      {category?.name || "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                      {brand?.name || "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <div className="text-sm font-medium text-gray-900">
+                        ${parseFloat(product.details?.price || 0).toFixed(2)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <span
+                        className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
+                          product.details?.is_published
+                            ? "bg-green-100 text-green-800"
+                            : "bg-yellow-100 text-yellow-800"
+                        }`}
+                      >
+                        {product.details?.is_published ? "Published" : "Draft"}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
+      {/* Pagination */}
       <div className="flex justify-center mt-4">
         {[...Array(totalPages)].map((_, index) => (
           <button
@@ -240,74 +236,14 @@ export default function ProductList() {
             onClick={() => setCurrentPage(index + 1)}
             className={`mx-1 px-3 py-1 border rounded ${
               currentPage === index + 1
-                ? "bg-indigo-500 text-white"
-                : "bg-white"
+                ? "bg-blue-500 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-50"
             }`}
           >
             {index + 1}
           </button>
         ))}
       </div>
-
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-      >
-        <MenuItem onClick={handleEdit}>Edit</MenuItem>
-        <MenuItem onClick={handleDelete} sx={{ color: "#DC2626" }}>
-          Delete
-        </MenuItem>
-      </Menu>
-
-      <Modal
-        open={editModalOpen}
-        onOpenChange={setEditModalOpen}
-        title="Edit Product"
-      >
-        {selectedProduct && (
-          <div className="space-y-4">
-            <label className="block">
-              <span className="text-gray-700">Product Name</span>
-              <input
-                type="text"
-                value={selectedProduct.name}
-                onChange={(e) =>
-                  setSelectedProduct({
-                    ...selectedProduct,
-                    name: e.target.value,
-                  })
-                }
-                className="w-full p-2 border rounded mt-1"
-              />
-            </label>
-            <label className="block">
-              <span className="text-gray-700">Price</span>
-              <input
-                type="number"
-                value={selectedProduct.details.price}
-                onChange={(e) =>
-                  setSelectedProduct({
-                    ...selectedProduct,
-                    details: {
-                      ...selectedProduct.details,
-                      price: e.target.value,
-                    },
-                  })
-                }
-                className="w-full p-2 border rounded mt-1"
-                step="0.01"
-              />
-            </label>
-            <button
-              onClick={handleUpdate}
-              className="w-full bg-indigo-500 text-white p-2 rounded mt-4"
-            >
-              Update
-            </button>
-          </div>
-        )}
-      </Modal>
     </div>
   );
 }

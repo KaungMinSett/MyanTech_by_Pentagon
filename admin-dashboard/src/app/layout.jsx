@@ -36,6 +36,7 @@ import FinanceList from "./finance/page";
 import FinanceDetail from "../components/finance/finance-detail";
 import SalesReports from "./reports/sale-report";
 import { DeliveryPage } from "@/app/delivery/page";
+import { PriceAssignPage } from "@/app/sales/price-assign/page";
 
 function Layout() {
   const location = useLocation();
@@ -69,22 +70,11 @@ function Layout() {
               element={
                 <Routes>
                   <Route index element={<Navigate to="orders" replace />} />
-                  <Route 
-                    path="orders" 
-                    element={<OrdersPage />} 
-                  />
-                  <Route 
-                    path="orders/:id" 
-                    element={<OrderDetailPage />} 
-                  />
-                  <Route 
-                    path="history" 
-                    element={<OrderHistoryPage />} 
-                  />
-                  <Route 
-                    path="products" 
-                    element={<ProductList />} 
-                  />
+                  <Route path="orders" element={<OrdersPage />} />
+                  <Route path="orders/:id" element={<OrderDetailPage />} />
+                  <Route path="history" element={<OrderHistoryPage />} />
+                  <Route path="price-assign" element={<PriceAssignPage />} />
+                  <Route path="products" element={<ProductList />} />
                 </Routes>
               }
             />

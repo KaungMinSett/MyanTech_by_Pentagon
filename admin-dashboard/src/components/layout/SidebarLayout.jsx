@@ -25,6 +25,7 @@ const navigation = [
     icon: ShoppingCart,
     children: [
       { name: "Orders", href: "/sales/orders" },
+      { name: "Price Assign", href: "/sales/price-assign" },
       { name: "Products", href: "/sales/products" },
     ],
   },
