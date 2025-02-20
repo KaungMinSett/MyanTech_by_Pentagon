@@ -235,6 +235,44 @@ export const rejectInboundOrder = createAsyncThunk(
   }
 );
 
+export const fetchOutboundOrders = createAsyncThunk(
+  "warehouse/fetchOutboundOrders",
+  async (_, { getState, rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.get("/warehouse/api/outbounds/");
+      const state = getState();
+
+      // Get confirmed orders from orders slice
+      const confirmedOrders = state.orders.orders.filter(
+        (order) => order.status === "Confirmed"
+      );
+
+      // Map confirmed orders to outbound format
+      const outboundOrders = confirmedOrders.map((order) => ({
+        id: order.id.replace("#", ""),
+        order_reference: order.id,
+        products: order.products,
+        customer: order.customer,
+        quantity: order.quantities
+          ? order.quantities.reduce((a, b) => a + b, 0)
+          : 0,
+        status: "Pending Delivery",
+        created_at: new Date(order.date).toISOString(),
+        warehouse: {
+          id: 1, // Default warehouse, adjust as needed
+          name: "Main Warehouse",
+        },
+      }));
+
+      return outboundOrders;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || "Failed to fetch outbound orders"
+      );
+    }
+  }
+);
+
 // Constants
 const initialState = {
   // Data
@@ -275,6 +313,7 @@ const initialState = {
     inventory: false,
     products: false,
     inboundOrders: false,
+    outboundOrders: false,
   },
   error: null,
   notifications: {
@@ -438,6 +477,19 @@ const warehouseSlice = createSlice({
             updated_at: new Date().toISOString(),
           };
         }
+      })
+      .addCase(fetchOutboundOrders.pending, (state) => {
+        state.loadingStates.outboundOrders = true;
+        state.error = null;
+      })
+      .addCase(fetchOutboundOrders.fulfilled, (state, action) => {
+        state.loadingStates.outboundOrders = false;
+        state.outboundOrders = action.payload;
+        state.error = null;
+      })
+      .addCase(fetchOutboundOrders.rejected, (state, action) => {
+        state.loadingStates.outboundOrders = false;
+        state.error = action.payload;
       });
   },
 });

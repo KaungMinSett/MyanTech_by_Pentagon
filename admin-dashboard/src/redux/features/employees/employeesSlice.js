@@ -31,7 +31,11 @@ export const fetchRoles = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get("/hr/roles/");
-      return response.data;
+      const transformedRoles = response.data.map((role) => ({
+        id: role.id,
+        name: role.name,
+      }));
+      return transformedRoles;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.detail || "Failed to fetch roles"
@@ -45,11 +49,11 @@ export const fetchDepartments = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get("/hr/departments/");
-      // Remove duplicates based on department name
-      const uniqueDepartments = Array.from(
-        new Map(response.data.map((item) => [item.name, item])).values()
-      );
-      return uniqueDepartments;
+      const transformedDepartments = response.data.map((dept) => ({
+        id: dept.id,
+        name: dept.name,
+      }));
+      return transformedDepartments;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.detail || "Failed to fetch departments"
@@ -66,8 +70,8 @@ export const createStaff = createAsyncThunk(
         username: staffData.username.trim(),
         email: staffData.email.trim(),
         password: staffData.password,
-        role: staffData.role,
-        department: staffData.department,
+        role: parseInt(staffData.role),
+        department: parseInt(staffData.department),
         status: staffData.status || "Available",
       };
 
@@ -75,6 +79,7 @@ export const createStaff = createAsyncThunk(
         "/hr/employees/",
         formattedData
       );
+
       await dispatch(fetchEmployees());
 
       return {
@@ -101,7 +106,7 @@ export const createStaff = createAsyncThunk(
         return rejectWithValue("Invalid department selected");
       if (errorData?.password) return rejectWithValue("Password is required");
 
-      throw error;
+      return rejectWithValue("Failed to create employee");
     }
   }
 );
@@ -239,11 +244,29 @@ const employeesSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      .addCase(fetchRoles.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(fetchRoles.fulfilled, (state, action) => {
         state.roles = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchRoles.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchDepartments.pending, (state) => {
+        state.loading = true;
+        state.error = null;
       })
       .addCase(fetchDepartments.fulfilled, (state, action) => {
         state.departments = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchDepartments.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       })
       .addCase(createStaff.pending, (state) => {
         state.loading = true;

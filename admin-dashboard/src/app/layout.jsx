@@ -23,7 +23,6 @@ import SidebarLayout from "@/components/layout/SidebarLayout";
 import DashboardPage from "@/app/dashboard/page";
 import { AdminLoginPage } from "@/components/auth/login";
 import { OrdersPage } from "@/app/sales/orders/page";
-import { OrderDetailPage } from "@/app/sales/orders/order-detail";
 import { OrderHistoryPage } from "@/app/sales/history/page";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 import { Breadcrumb } from "@/components/navigation/Breadcrumb";
@@ -71,7 +70,6 @@ function Layout() {
                 <Routes>
                   <Route index element={<Navigate to="orders" replace />} />
                   <Route path="orders" element={<OrdersPage />} />
-                  <Route path="orders/:id" element={<OrderDetailPage />} />
                   <Route path="history" element={<OrderHistoryPage />} />
                   <Route path="price-assign" element={<PriceAssignPage />} />
                   <Route path="products" element={<ProductList />} />

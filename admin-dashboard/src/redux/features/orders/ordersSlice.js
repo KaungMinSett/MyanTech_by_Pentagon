@@ -6,23 +6,19 @@ export const fetchOrders = createAsyncThunk(
   "orders/fetchOrders",
   async (_, { rejectWithValue }) => {
     try {
-      console.log("Fetching orders...");
       const [
         ordersResponse,
         employeesResponse,
         usersResponse,
         productsResponse,
+        customersResponse,
       ] = await Promise.all([
         axiosInstance.get("/sales/api/orders"),
         axiosInstance.get("/hr/employees/"),
         axiosInstance.get("/auth/users/"),
         axiosInstance.get("/api/shop/productlist/"),
+        axiosInstance.get("/sales/api/customers/"),
       ]);
-
-      console.log("Orders Response:", ordersResponse.data);
-      console.log("Employees Response:", employeesResponse.data);
-      console.log("Users Response:", usersResponse.data);
-      console.log("Products Response:", productsResponse.data);
 
       // Create lookup objects
       const employees = employeesResponse.data.reduce((acc, emp) => {
@@ -40,6 +36,11 @@ export const fetchOrders = createAsyncThunk(
         return acc;
       }, {});
 
+      const customers = customersResponse.data.reduce((acc, customer) => {
+        acc[customer.id] = customer.full_name;
+        return acc;
+      }, {});
+
       const transformedData = ordersResponse.data.map((order) => ({
         id: `#${order.id}`,
         products: order.order_items.map(
@@ -51,7 +52,7 @@ export const fetchOrders = createAsyncThunk(
           month: "short",
           year: "numeric",
         }),
-        customer: users[order.customer] || `Customer ${order.customer}`,
+        customer: customers[order.customer] || `Customer ${order.customer}`,
         payment:
           order.reconciliation_status === "COMPLETED" ? "Success" : "Pending",
         total: order.order_items
@@ -66,10 +67,8 @@ export const fetchOrders = createAsyncThunk(
         status: order.status,
       }));
 
-      console.log("Transformed Data:", transformedData);
       return transformedData;
     } catch (error) {
-      console.error("Fetch Orders Error:", error.response?.data || error);
       return rejectWithValue(error.response?.data || "Failed to fetch orders");
     }
   }
@@ -93,11 +92,8 @@ export const createOrder = createAsyncThunk(
         reconciliation_status: "PENDING",
       };
 
-      console.log("API Request Payload:", payload);
       const response = await axiosInstance.post("/sales/api/orders/", payload);
-      console.log("API Response:", response.data);
 
-      // Transform the response to match our order format
       const transformedOrder = {
         id: `#${response.data.id}`,
         products: response.data.order_items.map(
@@ -122,7 +118,6 @@ export const createOrder = createAsyncThunk(
       };
       return transformedOrder;
     } catch (error) {
-      console.error("API Error:", error.response?.data || error);
       return rejectWithValue(error.response?.data || "Failed to create order");
     }
   }
@@ -197,6 +192,7 @@ const ordersSlice = createSlice({
   },
 });
 
+// Selectors
 export const selectOrdersState = (state) => ({
   orders: state.orders.orders,
   dateFilter: state.orders.dateFilter,
@@ -263,6 +259,7 @@ export const {
   acceptOrder,
   rejectOrder,
 } = ordersSlice.actions;
+
 export const selectOrderNotifications = (state) =>
   state.orders.notifications.newOrders;
 

@@ -5,6 +5,7 @@ import { CircularProgress } from "@mui/material";
 import {
   fetchProducts,
   fetchInboundOrders,
+  fetchOutboundOrders,
 } from "@/redux/features/warehouse/warehouseSlice";
 import { StatusBadge } from "@/components/warehouse/StatusBadge";
 import { TableHeader } from "@/components/warehouse/TableHeader";
@@ -60,10 +61,50 @@ const TABLE_HEADERS = [
   "Created At",
 ];
 
+const OUTBOUND_HEADERS = [
+  "No",
+  "Order ID",
+  "Products",
+  "Customer",
+  "Quantity",
+  "Status",
+  "Created At",
+];
+
+const OutboundRow = ({ item, index }) => (
+  <tr>
+    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+      {index + 1}
+    </td>
+    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+      {item.order_reference}
+    </td>
+    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+      <div className="max-w-xs truncate">
+        {Array.isArray(item.products)
+          ? item.products.join(", ")
+          : item.products}
+      </div>
+    </td>
+    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+      {item.customer}
+    </td>
+    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+      {item.quantity}
+    </td>
+    <td className="px-6 py-4 whitespace-nowrap">
+      <StatusBadge status={item.status} />
+    </td>
+    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+      {new Date(item.created_at).toLocaleString()}
+    </td>
+  </tr>
+);
+
 export default function InboundOutbound() {
   const [activeTab, setActiveTab] = useState("inbound");
   const dispatch = useDispatch();
-  const { inboundOrders, loading, error } = useSelector(
+  const { inboundOrders, outboundOrders, loading, error } = useSelector(
     (state) => state.warehouse
   );
 
@@ -73,6 +114,7 @@ export default function InboundOutbound() {
         await Promise.all([
           dispatch(fetchProducts()).unwrap(),
           dispatch(fetchInboundOrders()).unwrap(),
+          dispatch(fetchOutboundOrders()).unwrap(),
         ]);
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -112,6 +154,21 @@ export default function InboundOutbound() {
     </div>
   );
 
+  const renderOutboundTable = () => (
+    <div className="bg-white shadow rounded-lg overflow-hidden">
+      <div className="max-h-[calc(100vh-190px)] overflow-y-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <TableHeader headers={OUTBOUND_HEADERS} />
+          <tbody className="bg-white divide-y divide-gray-200">
+            {outboundOrders.map((item, index) => (
+              <OutboundRow key={item.id} item={item} index={index} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <Tabs.Root
@@ -129,7 +186,7 @@ export default function InboundOutbound() {
         </Tabs.Content>
 
         <Tabs.Content value="outbound" className="space-y-4">
-          {/* Outbound content will be implemented here */}
+          {renderOutboundTable()}
         </Tabs.Content>
       </Tabs.Root>
     </div>
