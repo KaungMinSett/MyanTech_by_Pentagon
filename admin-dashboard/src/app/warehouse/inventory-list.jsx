@@ -13,10 +13,10 @@ import { FilterControls } from "@/components/warehouse/FilterControls";
 import { Pagination } from "@/components/warehouse/Pagination";
 
 // Component for inventory table row
-const InventoryRow = ({ item, product, brand, category, warehouse }) => (
-  <tr key={item.id}>
+const InventoryRow = ({ item, product, brand, category, warehouse, index }) => (
+  <tr>
     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-      {item.id}
+      {index + 1}
     </td>
     <td className="px-6 py-4 whitespace-nowrap">
       <div className="text-sm font-medium text-gray-900">{product?.name}</div>
@@ -39,6 +39,15 @@ const InventoryRow = ({ item, product, brand, category, warehouse }) => (
     </td>
   </tr>
 );
+
+const TABLE_HEADERS = [
+  { id: "no", label: "No" },
+  { id: "product", label: "Product" },
+  { id: "brand", label: "Brand" },
+  { id: "category", label: "Category" },
+  { id: "warehouse", label: "Warehouse" },
+  { id: "quantity", label: "Quantity" },
+];
 
 export default function InventoryList() {
   const dispatch = useDispatch();
@@ -104,69 +113,57 @@ export default function InventoryList() {
     const product = products.find((p) => p.id === item.product);
     if (!product) return false;
 
-    return (
-      (selectedWarehouse === "" ||
-        item.warehouse === parseInt(selectedWarehouse)) &&
-      (selectedBrand === "" || product.brand === parseInt(selectedBrand)) &&
-      (selectedCategory === "" ||
-        product.category === parseInt(selectedCategory))
-    );
+    const warehouseMatch =
+      !selectedWarehouse || item.warehouse === parseInt(selectedWarehouse);
+    const brandMatch =
+      !selectedBrand || product.brand === parseInt(selectedBrand);
+    const categoryMatch =
+      !selectedCategory || product.category === parseInt(selectedCategory);
+
+    return warehouseMatch && brandMatch && categoryMatch;
   });
 
-  const totalPages = Math.ceil((filteredInventory?.length || 0) / itemsPerPage);
-  const paginatedInventory = filteredInventory?.slice(
+  const paginatedInventory = filteredInventory.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
+  const totalPages = Math.ceil(filteredInventory.length / itemsPerPage);
+
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <FilterControls
-          warehouses={warehouses}
-          brands={brands}
-          categories={categories}
-          selectedValues={{
-            warehouse: selectedWarehouse,
-            brand: selectedBrand,
-            category: selectedCategory,
-          }}
-          onWarehouseChange={(e) =>
-            dispatch(setSelectedWarehouse(e.target.value))
-          }
-          onBrandChange={(e) => dispatch(setSelectedBrand(e.target.value))}
-          onCategoryChange={(e) =>
-            dispatch(setSelectedCategory(e.target.value))
-          }
-        />
-      </div>
+      <FilterControls
+        warehouses={warehouses}
+        brands={brands}
+        categories={categories}
+        selectedValues={{
+          warehouse: selectedWarehouse,
+          brand: selectedBrand,
+          category: selectedCategory,
+        }}
+        onWarehouseChange={(e) =>
+          dispatch(setSelectedWarehouse(e.target.value))
+        }
+        onBrandChange={(e) => dispatch(setSelectedBrand(e.target.value))}
+        onCategoryChange={(e) => dispatch(setSelectedCategory(e.target.value))}
+      />
 
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ID
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Product
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Brand
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Category
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Warehouse
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Quantity
-              </th>
+              {TABLE_HEADERS.map(({ id, label }) => (
+                <th
+                  key={id}
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  {label}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {paginatedInventory.map((item) => {
+            {paginatedInventory.map((item, index) => {
               const product = products.find((p) => p.id === item.product);
               const brand = brands.find((b) => b.id === product?.brand);
               const category = categories.find(
@@ -182,6 +179,7 @@ export default function InventoryList() {
                   brand={brand}
                   category={category}
                   warehouse={warehouse}
+                  index={(currentPage - 1) * itemsPerPage + index}
                 />
               );
             })}

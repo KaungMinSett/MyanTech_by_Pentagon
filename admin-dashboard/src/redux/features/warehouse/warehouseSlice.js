@@ -153,9 +153,8 @@ export const approveInboundOrder = createAsyncThunk(
         throw new Error("Order not found");
       }
 
-      console.log("Before API call - Order:", order);
-
-      const response = await axiosInstance.patch(
+      // Send complete order data with updated status
+      const response = await axiosInstance.put(
         `/warehouse/api/inbounds/${orderId}/`,
         {
           product: order.product.id,
@@ -165,11 +164,12 @@ export const approveInboundOrder = createAsyncThunk(
         }
       );
 
-      console.log("API Response:", response.data);
-
       if (response.status === 200) {
-        // Handle inventory updates
-        const existingItem = state.warehouse.inventory.find(
+        // Handle inventory updates after successful status change
+        const inventoryResponse = await axiosInstance.get(
+          "/warehouse/api/inventory/"
+        );
+        const existingItem = inventoryResponse.data.find(
           (item) =>
             item.product === order.product.id &&
             item.warehouse === order.warehouse.id
@@ -179,27 +179,24 @@ export const approveInboundOrder = createAsyncThunk(
           await axiosInstance.patch(
             `/warehouse/api/inventory/${existingItem.id}/`,
             {
-              quantity: existingItem.quantity + order.quantity,
+              quantity:
+                parseInt(existingItem.quantity) + parseInt(order.quantity),
             }
           );
         } else {
           await axiosInstance.post("/warehouse/api/inventory/", {
             product: order.product.id,
             warehouse: order.warehouse.id,
-            quantity: order.quantity,
+            quantity: parseInt(order.quantity),
           });
         }
 
-        // Refresh inventory
         await dispatch(fetchInventory());
-
-        console.log("Returning response data:", response.data);
         return response.data;
       }
 
       return rejectWithValue("Failed to approve order");
     } catch (error) {
-      console.error("Error in approveInboundOrder:", error);
       return rejectWithValue(
         error.response?.data?.detail ||
           error.response?.data ||
@@ -211,7 +208,7 @@ export const approveInboundOrder = createAsyncThunk(
 
 export const rejectInboundOrder = createAsyncThunk(
   "warehouse/rejectInboundOrder",
-  async ({ orderId }, { getState, dispatch, rejectWithValue }) => {
+  async ({ orderId }, { getState, rejectWithValue }) => {
     try {
       const state = getState();
       const order = state.warehouse.inboundOrders.find((o) => o.id === orderId);
@@ -229,7 +226,6 @@ export const rejectInboundOrder = createAsyncThunk(
 
       return orderId;
     } catch (error) {
-      console.error("Error in rejectInboundOrder:", error);
       return rejectWithValue(
         error.response?.data?.detail ||
           error.message ||
@@ -239,7 +235,9 @@ export const rejectInboundOrder = createAsyncThunk(
   }
 );
 
+// Constants
 const initialState = {
+  // Data
   inventory: [],
   products: [],
   warehouses: [],
@@ -247,6 +245,8 @@ const initialState = {
   categories: [],
   inboundOrders: [],
   outboundOrders: [],
+
+  // Form State
   form: {
     product: null,
     productInput: "",
@@ -262,11 +262,15 @@ const initialState = {
       warehouse: false,
     },
   },
+
+  // Filters and Pagination
   selectedWarehouse: "",
   selectedBrand: "",
   selectedCategory: "",
   currentPage: 1,
   itemsPerPage: 10,
+
+  // Status
   loadingStates: {
     inventory: false,
     products: false,
@@ -279,10 +283,28 @@ const initialState = {
   },
 };
 
+// Slice Definition
 const warehouseSlice = createSlice({
   name: "warehouse",
   initialState,
   reducers: {
+    // Form Actions
+    setFormField: (state, action) => {
+      const { field, value } = action.payload;
+      state.form[field] = value;
+    },
+    setDropdownVisibility: (state, action) => {
+      const { dropdown, isVisible } = action.payload;
+      state.form.showDropdowns[dropdown] = isVisible;
+    },
+    resetForm: (state) => {
+      state.form = initialState.form;
+    },
+    setQuantity: (state, action) => {
+      state.form.quantity = action.payload;
+    },
+
+    // Selection Actions
     setSelectedWarehouse: (state, action) => {
       if (typeof action.payload === "object") {
         state.form.warehouse = action.payload;
@@ -296,30 +318,6 @@ const warehouseSlice = createSlice({
     },
     setSelectedCategory: (state, action) => {
       state.selectedCategory = action.payload;
-    },
-    setCurrentPage: (state, action) => {
-      state.currentPage = action.payload;
-    },
-    updateInventoryQuantity: (state, action) => {
-      const { productId, warehouseId, quantity } = action.payload;
-      const item = state.inventory.find(
-        (item) =>
-          item.product_id === productId && item.warehouse_id === warehouseId
-      );
-      if (item) {
-        item.quantity = quantity;
-      }
-    },
-    setFormField: (state, action) => {
-      const { field, value } = action.payload;
-      state.form[field] = value;
-    },
-    setDropdownVisibility: (state, action) => {
-      const { dropdown, isVisible } = action.payload;
-      state.form.showDropdowns[dropdown] = isVisible;
-    },
-    resetForm: (state) => {
-      state.form = initialState.form;
     },
     setSelectedProductForm: (state, action) => {
       const product = action.payload;
@@ -336,11 +334,27 @@ const warehouseSlice = createSlice({
       state.form[type] = item;
       state.form[`${type}Input`] = item.name;
     },
+
+    // Pagination Actions
+    setCurrentPage: (state, action) => {
+      state.currentPage = action.payload;
+    },
+
+    // Inventory Actions
+    updateInventoryQuantity: (state, action) => {
+      const { productId, warehouseId, quantity } = action.payload;
+      const item = state.inventory.find(
+        (item) =>
+          item.product_id === productId && item.warehouse_id === warehouseId
+      );
+      if (item) {
+        item.quantity = quantity;
+      }
+    },
+
+    // Notification Actions
     clearInboundNotification: (state) => {
       state.notifications.inboundOrders = [];
-    },
-    setQuantity: (state, action) => {
-      state.form.quantity = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -398,27 +412,18 @@ const warehouseSlice = createSlice({
         state.error = action.payload;
       })
       .addCase(approveInboundOrder.fulfilled, (state, action) => {
-        console.log("Reducer - Received payload:", action.payload);
         const updatedOrder = action.payload;
         const orderIndex = state.inboundOrders.findIndex(
           (order) => order.id === updatedOrder.id
         );
-        console.log("Reducer - Found order index:", orderIndex);
 
         if (orderIndex !== -1) {
           const oldOrder = state.inboundOrders[orderIndex];
-          console.log("Reducer - Old order state:", oldOrder);
-
           state.inboundOrders[orderIndex] = {
             ...oldOrder,
             status: "approved",
             updated_at: updatedOrder.updated_at,
           };
-
-          console.log(
-            "Reducer - Updated order:",
-            state.inboundOrders[orderIndex]
-          );
         }
       })
       .addCase(rejectInboundOrder.fulfilled, (state, action) => {
@@ -437,6 +442,7 @@ const warehouseSlice = createSlice({
   },
 });
 
+// Selectors
 export const selectInboundOrders = (state) => state.warehouse.inboundOrders;
 export const selectOutboundOrders = (state) => state.warehouse.outboundOrders;
 export const selectInventoryBase = (state) => ({
@@ -447,6 +453,7 @@ export const selectInventoryBase = (state) => ({
   products: state.warehouse.products,
 });
 
+// Memoized Selectors
 export const selectPendingInboundOrders = createSelector(
   [selectInboundOrders],
   (inboundOrders) => inboundOrders.filter((order) => order.status === "pending")
@@ -480,6 +487,7 @@ export const selectFilteredInventory = createSelector(
 export const selectInboundNotifications = (state) =>
   state.warehouse.notifications.inboundOrders;
 
+// Export actions and reducer
 export const {
   setSelectedWarehouse,
   setSelectedBrand,

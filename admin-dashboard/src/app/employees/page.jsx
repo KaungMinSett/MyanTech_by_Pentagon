@@ -21,6 +21,52 @@ import {
 } from "@/redux/features/employees/employeesSlice";
 import { toast } from "react-hot-toast";
 
+const TABLE_HEADERS = [
+  { id: "number", label: "No", width: "10%" },
+  { id: "name", label: "Staff Name", width: "20%" },
+  { id: "contact", label: "Contact Details", width: "20%" },
+  { id: "status", label: "Status", width: "25%", align: "center" },
+  { id: "department", label: "Department", width: "20%" },
+  { id: "role", label: "Role", width: "20%" },
+  { id: "actions", label: "", width: "10%" },
+];
+
+const StaffRow = ({ member, index, onMenuOpen }) => (
+  <tr className="hover:bg-gray-50">
+    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+      {index + 1}
+    </td>
+    <td className="px-6 py-4 whitespace-nowrap">
+      <div className="text-sm text-gray-900">{member.name}</div>
+    </td>
+    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+      {member.email}
+    </td>
+    <td className="px-6 py-4 whitespace-nowrap text-center">
+      <span
+        className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+          member.status === "Available"
+            ? "bg-green-100 text-green-800"
+            : "bg-red-100 text-red-800"
+        }`}
+      >
+        {member.status}
+      </span>
+    </td>
+    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+      {member.department}
+    </td>
+    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+      {member.role}
+    </td>
+    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+      <button onClick={(e) => onMenuOpen(e, member)}>
+        <MoreVertical className="w-4 h-4" />
+      </button>
+    </td>
+  </tr>
+);
+
 export default function StaffList() {
   const dispatch = useDispatch();
   const { staffMembers, filter, searchQuery } = useSelector(
@@ -99,14 +145,19 @@ export default function StaffList() {
   };
 
   const filteredStaff =
-    staffMembers?.filter(
-      (member) =>
-        [member.name, member.role, member.email]
-          .join(" ")
-          .toLowerCase()
-          .includes(searchQuery?.toLowerCase() || "") &&
-        (filter === "" || member.role === filter || member.status === filter)
-    ) || [];
+    staffMembers?.filter((member) => {
+      const searchMatch = [member.name, member.role, member.email]
+        .join(" ")
+        .toLowerCase()
+        .includes(searchQuery?.toLowerCase() || "");
+
+      let filterMatch = true;
+      if (filter) {
+        filterMatch = member.role === filter || member.status === filter;
+      }
+
+      return searchMatch && filterMatch;
+    }) || [];
 
   return (
     <div className="space-y-6">
@@ -144,8 +195,6 @@ export default function StaffList() {
               displayEmpty
             >
               <MenuItem value="">All</MenuItem>
-              <MenuItem value="Manager">Manager</MenuItem>
-              <MenuItem value="Staff">Staff</MenuItem>
               <MenuItem value="Available">Available</MenuItem>
               <MenuItem value="Unavailable">Unavailable</MenuItem>
             </Select>
@@ -166,62 +215,27 @@ export default function StaffList() {
           <table className="w-full table-fixed divide-y divide-gray-200">
             <thead className="bg-gray-50 sticky top-0">
               <tr>
-                <th className="w-[10%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ID
-                </th>
-                <th className="w-[20%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Staff Name
-                </th>
-                <th className="w-[20%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Contact Details
-                </th>
-                <th className="w-[25%] px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="w-[20%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Department
-                </th>
-                <th className="w-[20%] px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Role
-                </th>
-                <th className="w-[10%] px-6 py-3"></th>
+                {TABLE_HEADERS.map(({ id, label, width, align }) => (
+                  <th
+                    key={id}
+                    style={{ width }}
+                    className={`px-6 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${
+                      align ? `text-${align}` : "text-left"
+                    }`}
+                  >
+                    {label}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredStaff.map((member) => (
-                <tr key={member.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    #{member.id}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{member.name}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {member.email}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <span
-                      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                        member.status === "Available"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {member.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {member.department}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {member.role}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    <button onClick={(e) => handleMenuOpen(e, member)}>
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
+              {filteredStaff.map((member, index) => (
+                <StaffRow
+                  key={member.id}
+                  member={member}
+                  index={index}
+                  onMenuOpen={handleMenuOpen}
+                />
               ))}
             </tbody>
           </table>

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Button } from "@radix-ui/themes";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setDropdownVisibility,
@@ -33,7 +33,6 @@ export default function ProductForm() {
           dispatch(fetchInboundOrders()),
         ]);
       } catch (error) {
-        console.error("Error fetching initial data:", error);
         toast.error("Failed to fetch initial data");
       }
     };
@@ -66,10 +65,7 @@ export default function ProductForm() {
       dispatch(resetForm());
       toast.success("Inbound order created successfully!", toastConfig);
     } catch (error) {
-      const errorMessage =
-        typeof error === "string"
-          ? error
-          : error?.detail || "Failed to create inbound order";
+      const errorMessage = error?.detail || "Failed to create inbound order";
       toast.error(errorMessage, toastConfig);
     }
   };
@@ -115,7 +111,6 @@ export default function ProductForm() {
     <div className="mt-2 max-w-2xl mx-auto">
       <div className="bg-white shadow rounded-lg">
         <div className="p-6 space-y-6">
-          <Toaster />
           <div className="space-y-6">
             {renderProductInput()}
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Package2, Check, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import Button from "@mui/material/Button";
 import { Modal } from "@/components/modal/modal";
@@ -11,6 +11,20 @@ import {
   fetchProducts,
 } from "@/redux/features/warehouse/warehouseSlice";
 import { toast } from "react-hot-toast";
+
+// Component for action buttons in modal
+const ActionButton = ({ variant, color, onClick, icon: Icon, children }) => (
+  <Button
+    variant={variant}
+    color={color}
+    fullWidth
+    onClick={onClick}
+    className="flex items-center justify-center"
+  >
+    <Icon className="h-4 w-4 mr-2" />
+    {children}
+  </Button>
+);
 
 export default function ConfirmProducts() {
   const dispatch = useDispatch();
@@ -25,8 +39,10 @@ export default function ConfirmProducts() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await dispatch(fetchProducts()).unwrap();
-        await dispatch(fetchInboundOrders()).unwrap();
+        await Promise.all([
+          dispatch(fetchProducts()).unwrap(),
+          dispatch(fetchInboundOrders()).unwrap(),
+        ]);
       } catch (error) {
         toast.error("Failed to fetch pending items");
       }
@@ -35,24 +51,33 @@ export default function ConfirmProducts() {
   }, [dispatch]);
 
   const handleSelectItem = (itemId) => {
-    setSelectedItems((prev) => {
-      if (prev.includes(itemId)) {
-        return prev.filter((id) => id !== itemId);
-      }
-      return [...prev, itemId];
-    });
+    setSelectedItems((prev) =>
+      prev.includes(itemId)
+        ? prev.filter((id) => id !== itemId)
+        : [...prev, itemId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    setSelectedItems(
+      selectedItems.length === pendingItems.length
+        ? []
+        : pendingItems.map((item) => item.id)
+    );
   };
 
   const handleAction = async (action) => {
     const count = selectedItems.length;
     try {
-      for (const itemId of selectedItems) {
-        if (action === "confirm") {
-          await dispatch(approveInboundOrder({ orderId: itemId })).unwrap();
-        } else {
-          await dispatch(rejectInboundOrder({ orderId: itemId })).unwrap();
-        }
-      }
+      const actionPromises = selectedItems.map((itemId) =>
+        dispatch(
+          action === "confirm"
+            ? approveInboundOrder({ orderId: itemId })
+            : rejectInboundOrder({ orderId: itemId })
+        ).unwrap()
+      );
+
+      await Promise.all(actionPromises);
 
       setSelectedItems([]);
       setActionType(action);
@@ -64,7 +89,7 @@ export default function ConfirmProducts() {
       setShowActionModal(false);
       setShowResultModal(true);
     } catch (error) {
-      toast.error("Failed to process items: " + error.message);
+      toast.error(`Failed to process items: ${error.message}`);
     }
   };
 
@@ -82,31 +107,24 @@ export default function ConfirmProducts() {
                       selectedItems.length === pendingItems.length &&
                       pendingItems.length > 0
                     }
-                    onChange={() => {
-                      if (selectedItems.length === pendingItems.length) {
-                        setSelectedItems([]);
-                      } else {
-                        setSelectedItems(pendingItems.map((item) => item.id));
-                      }
-                    }}
+                    onChange={handleSelectAll}
                     className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                   />
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Product
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Warehouse
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Quantity
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Created By
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Created At
-                </th>
+                {[
+                  "Product",
+                  "Warehouse",
+                  "Quantity",
+                  "Created By",
+                  "Created At",
+                ].map((header) => (
+                  <th
+                    key={header}
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    {header}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -166,26 +184,22 @@ export default function ConfirmProducts() {
             Select Action for Selected Items
           </h3>
           <div className="space-y-4">
-            <Button
+            <ActionButton
               variant="outlined"
               color="success"
-              fullWidth
               onClick={() => handleAction("confirm")}
-              className="flex items-center justify-center"
+              icon={Check}
             >
-              <Check className="h-4 w-4 mr-2" />
               Confirm Items
-            </Button>
-            <Button
+            </ActionButton>
+            <ActionButton
               variant="outlined"
               color="error"
-              fullWidth
               onClick={() => handleAction("reject")}
-              className="flex items-center justify-center"
+              icon={X}
             >
-              <X className="h-4 w-4 mr-2" />
               Reject Items
-            </Button>
+            </ActionButton>
           </div>
         </div>
       </Modal>

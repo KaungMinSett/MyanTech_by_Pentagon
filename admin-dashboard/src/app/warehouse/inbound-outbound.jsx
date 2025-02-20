@@ -11,7 +11,7 @@ import { TableHeader } from "@/components/warehouse/TableHeader";
 
 // Table row component
 const OrderRow = ({ item, index }) => (
-  <tr key={item.id}>
+  <tr>
     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
       {index + 1}
     </td>
@@ -50,23 +50,34 @@ const TabTrigger = ({ value, activeTab }) => (
   </Tabs.Trigger>
 );
 
+const TABLE_HEADERS = [
+  "No",
+  "Product",
+  "Warehouse",
+  "Quantity",
+  "Status",
+  "Created By",
+  "Created At",
+];
+
 export default function InboundOutbound() {
   const [activeTab, setActiveTab] = useState("inbound");
   const dispatch = useDispatch();
-  const { inboundOrders, products, warehouses, loading, error } = useSelector(
+  const { inboundOrders, loading, error } = useSelector(
     (state) => state.warehouse
   );
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await dispatch(fetchProducts()).unwrap();
-        await dispatch(fetchInboundOrders()).unwrap();
+        await Promise.all([
+          dispatch(fetchProducts()).unwrap(),
+          dispatch(fetchInboundOrders()).unwrap(),
+        ]);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-
     fetchData();
   }, [dispatch]);
 
@@ -86,6 +97,21 @@ export default function InboundOutbound() {
     );
   }
 
+  const renderInboundTable = () => (
+    <div className="bg-white shadow rounded-lg overflow-hidden">
+      <div className="max-h-[calc(100vh-190px)] overflow-y-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <TableHeader headers={TABLE_HEADERS} />
+          <tbody className="bg-white divide-y divide-gray-200">
+            {inboundOrders.map((item, index) => (
+              <OrderRow key={item.id} item={item} index={index} />
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <Tabs.Root
@@ -99,28 +125,7 @@ export default function InboundOutbound() {
         </Tabs.List>
 
         <Tabs.Content value="inbound" className="space-y-4">
-          <div className="bg-white shadow rounded-lg overflow-hidden">
-            <div className="max-h-[calc(100vh-190px)] overflow-y-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <TableHeader
-                  headers={[
-                    "No",
-                    "Product",
-                    "Warehouse",
-                    "Quantity",
-                    "Status",
-                    "Created By",
-                    "Created At",
-                  ]}
-                />
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {inboundOrders.map((item, index) => (
-                    <OrderRow key={item.id} item={item} index={index} />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          {renderInboundTable()}
         </Tabs.Content>
 
         <Tabs.Content value="outbound" className="space-y-4">
